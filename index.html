@@ -36,6 +36,24 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .client-logo-wrap { height: 38px; display: flex; align-items: center; }
 .client-logo-wrap img { height: 38px; width: auto; max-width: 180px; object-fit: contain; }
 .client-logo-text { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 3px; color: var(--logo); }
+.context-strip {
+  display: flex;
+  align-items: center;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--offwhite);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+.context-strip .sep {
+  color: var(--muted);
+  margin: 0 8px;
+  font-weight: 400;
+}
 .header-divider-line { width: 1px; height: 28px; background: rgba(255,255,255,0.12); }
 .header-tool-name { font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 300; color: var(--muted); letter-spacing: 0.05em; }
 .header-space { flex: 1; }
@@ -716,7 +734,47 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 
 <script>
 // ===== EMBED INIT — no auth, no branding persistence =====
-document.getElementById('clientLogoWrap').innerHTML = '';
+// Read context from URL params (set by Markur or any host app)
+const embedCtx = (() => {
+  const p = new URLSearchParams(window.location.search);
+  const get = k => {
+    const v = p.get(k);
+    return v ? v.trim() : '';
+  };
+  return {
+    building: get('building'),
+    floor:    get('floor'),
+    pin:      get('pin')
+  };
+})();
+
+// Render header context strip if any param is present
+(() => {
+  const wrap = document.getElementById('clientLogoWrap');
+  const parts = [];
+  if (embedCtx.building) parts.push(embedCtx.building);
+  if (embedCtx.floor)    parts.push(embedCtx.floor);
+  if (embedCtx.pin)      parts.push(embedCtx.pin);
+  if (parts.length === 0) { wrap.innerHTML = ''; return; }
+  const esc = s => s.replace(/[<>&]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;' }[c]));
+  wrap.innerHTML = '<div class="context-strip">' +
+    parts.map((t, i) => (i > 0 ? '<span class="sep">·</span>' : '') +
+      '<span>' + esc(t) + '</span>'
+    ).join('') +
+    '</div>';
+})();
+
+// Slug used to prefix downloaded filenames (PDF, session JSON)
+const embedCtxSlug = (() => {
+  const raw = [embedCtx.building, embedCtx.floor, embedCtx.pin].filter(Boolean).join('-');
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+})();
+
 document.getElementById('loadingScreen').style.display = 'none';
 
 function newSession() {
@@ -1768,7 +1826,7 @@ function exportPDF() {
   const img = out.toDataURL('image/png');
   const win = window.open('', '_blank');
   if (!win) { showToast('Allow popups to export PDF'); return; }
-  win.document.write(`<!DOCTYPE html><html><head><title>Visualizer Export</title>
+  win.document.write(`<!DOCTYPE html><html><head><title>${embedCtxSlug ? embedCtxSlug + '-' : ''}Visualizer Export</title>
     <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#0A0A0A;}
     img{width:100%;height:auto;display:block;}
     @media print{body{margin:0;}img{max-width:100%;page-break-inside:avoid;}}
@@ -1805,7 +1863,7 @@ function saveSession() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `visualizer-session-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `${embedCtxSlug ? embedCtxSlug + '-' : ''}visualizer-session-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('Session saved!');
