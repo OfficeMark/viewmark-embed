@@ -1,0 +1,2270 @@
+<!-- © 2025 ViewMark by OfficeMark. All rights reserved. Unauthorized reproduction is prohibited. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViewMark — Wall Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@400;600&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&family=Raleway:wght@400;700&family=Anton&family=Roboto+Condensed:wght@400;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;700&family=Nunito:wght@400;700&family=Merriweather:wght@400;700&family=Archivo+Black&family=Fjalla+One&family=Black+Han+Sans&family=Permanent+Marker&family=Teko:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  /* ViewMark brand palette */
+  --logo: #E85D2F;        /* Signal orange — wordmark + alerts only */
+  --brand: #BC7350;       /* Muted burnt-orange — UI accent */
+  --brand2: #A86343;      /* Muted burnt-orange hover */
+  --navy: #0A0A0A;        /* Ink (page bg) */
+  --navy2: #1A1A1A;       /* Steel (panels) */
+  --steel: #1A1A1A;       /* Steel (consolidated) */
+  --grey: #848688;
+  --offwhite: #FFFFFF;    /* Paper */
+  --muted: rgba(255, 255, 255, 0.65);
+  --green: #A8CF45;
+  --danger: #e05555;
+  --measure: #ff9f43;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(--offwhite); min-height: 100vh; overflow: hidden; }
+
+/* TRIAL BANNER */
+.trial-banner {
+  background: rgba(188,115,80,0.12);
+  border-bottom: 1px solid rgba(188,115,80,0.2);
+  padding: 8px 24px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px; color: var(--brand);
+}
+.trial-banner strong { color: var(--offwhite); }
+.trial-banner-space { flex: 1; }
+.trial-banner a { color: var(--brand); font-size: 11px; text-decoration: underline; cursor: pointer; }
+
+/* HEADER */
+.header {
+  background: #000;
+  border-bottom: 1px solid rgba(188,115,80,0.2);
+  padding: 0 24px;
+  display: flex; align-items: center; gap: 16px; height: 60px;
+}
+.client-logo-wrap { height: 38px; display: flex; align-items: center; }
+.client-logo-wrap img { height: 38px; width: auto; max-width: 180px; object-fit: contain; }
+.client-logo-text { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 3px; color: var(--logo); }
+.header-divider-line { width: 1px; height: 28px; background: rgba(255,255,255,0.12); }
+.header-tool-name { font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 300; color: var(--muted); letter-spacing: 0.05em; }
+.header-space { flex: 1; }
+.step-pills { display: flex; gap: 6px; }
+.step-pill {
+  padding: 5px 13px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.1); color: var(--muted); transition: all 0.3s;
+}
+.step-pill.active { background: var(--brand); color: var(--navy); border-color: var(--brand); }
+.step-pill.done { border-color: var(--brand); color: var(--brand); }
+
+.how-to-btn {
+  background: rgba(188,115,80,0.12); border: 1px solid rgba(188,115,80,0.3);
+  color: var(--brand); font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em; padding: 6px 13px; border-radius: 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: all 0.2s; white-space: nowrap;
+}
+.how-to-btn:hover { background: rgba(188,115,80,0.22); }
+
+.sign-out-btn {
+  background: none; border: none; color: var(--muted); font-size: 11px;
+  cursor: pointer; font-family: 'Manrope', sans-serif; transition: color 0.2s; padding: 4px 8px;
+}
+.sign-out-btn:hover { color: var(--offwhite); }
+
+/* MAIN */
+.main { display: grid; grid-template-columns: 1fr 340px; height: calc(100vh - 60px); }
+
+/* SNAP GRID */
+.snap-grid-indicator {
+  position: absolute; bottom: 60px; left: 12px;
+  font-family: 'Manrope', sans-serif; font-size: 9px; letter-spacing: 0.1em;
+  color: rgba(168,207,69,0.7); background: rgba(10,10,10,0.8);
+  border: 1px solid rgba(168,207,69,0.2); border-radius: 4px;
+  padding: 3px 8px; pointer-events: none; display: none; z-index: 50;
+}
+
+/* SETTINGS MODAL */
+.settings-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+.settings-overlay.visible { display:flex; }
+.settings-box {
+  background:var(--navy2); border:1px solid rgba(188,115,80,0.25); border-radius:14px;
+  max-width:480px; width:100%; max-height:85vh; overflow-y:auto; padding:26px 28px;
+}
+.settings-box::-webkit-scrollbar { width:3px; }
+.settings-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+.settings-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:20px; letter-spacing:3px; color:var(--brand); margin-bottom:4px; }
+.settings-sub { font-size:12px; color:var(--muted); margin-bottom:22px; }
+.settings-field { margin-bottom:18px; }
+.settings-field label { display:block; font-family:'Manrope',sans-serif; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.settings-field input[type=text], .settings-field input[type=url] {
+  width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  border-radius:7px; padding:10px 12px; color:var(--offwhite);
+  font-family:'Manrope',sans-serif; font-size:13px; outline:none; transition:border 0.2s;
+}
+.settings-field input:focus { border-color:var(--brand); }
+.settings-logo-upload { background:rgba(255,255,255,0.04); border:1px dashed rgba(188,115,80,0.3); border-radius:8px; padding:16px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+.settings-logo-upload:hover { border-color:var(--brand); }
+.settings-logo-upload input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.settings-logo-upload p { font-size:12px; color:var(--muted); }
+.settings-color-row { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; padding:8px 12px; }
+.settings-color-row input[type=color] { width:36px; height:36px; border:none; border-radius:6px; padding:2px; background:transparent; cursor:pointer; }
+.settings-color-row span { font-size:13px; color:var(--muted); font-family:'Manrope',sans-serif; }
+.settings-save-btn { width:100%; padding:13px; background:var(--brand); color:var(--navy); font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; border:none; border-radius:8px; cursor:pointer; transition:all 0.2s; margin-top:6px; }
+.settings-save-btn:hover { background:var(--brand2); }
+.settings-close-btn { position:absolute; top:20px; right:20px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1; }
+
+/* HEADER ICON BUTTONS */
+.icon-btn {
+  background: rgba(188,115,80,0.10); border: 1px solid rgba(188,115,80,0.25);
+  color: var(--brand); width:32px; height:32px; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0;
+}
+.icon-btn:hover { background:rgba(188,115,80,0.22); border-color:var(--brand); }
+
+/* CANVAS AREA */
+.canvas-area {
+  position: relative; background: #000000;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.canvas-hint {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  text-align: center; opacity: 0.45; pointer-events: none;
+}
+.canvas-hint p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* Scale-not-set warning banner — sits at top of canvas, only when wall is loaded but scale is not set */
+.scale-warning {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--logo);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 11px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+  display: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08);
+}
+.scale-warning.visible { display: block; }
+
+/* Canvas layers — all stacked at same offset */
+#wallCanvas { position: absolute; display: none; transform-origin: top left; }
+#refCanvas  { position: absolute; top:0; left:0; pointer-events:none; display:none; transform-origin: top left; }
+#ptpCanvas  { position: absolute; top:0; left:0; pointer-events:none; display:none; transform-origin: top left; }
+#overlayContainer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; transform-origin: top left; overflow: hidden; }
+
+.canvas-area.measuring { cursor: crosshair; }
+
+/* Overlay items */
+.overlay-item { position: absolute; pointer-events: all; cursor: move; user-select: none; }
+.overlay-item.selected .item-inner { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* item-inner passes through pointer events to avoid blocking edge access for box measure */
+.item-inner { position: relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.resize-handle {
+  position:absolute; bottom:-7px; right:-7px; width:14px; height:14px;
+  background: var(--brand); border-radius:3px; cursor:se-resize; z-index:10; display:none;
+  pointer-events:all;
+}
+.delete-handle {
+  position:absolute; top:-10px; right:-10px; width:20px; height:20px;
+  background: var(--danger); border-radius:50%; cursor:pointer; z-index:10;
+  display:none; align-items:center; justify-content:center; font-size:11px; color:white; font-weight:bold;
+  pointer-events:all;
+}
+.edit-handle {
+  position:absolute; top:-10px; left:-10px; width:20px; height:20px;
+  background: var(--brand); border-radius:50%; cursor:pointer; z-index:10;
+  display:none; align-items:center; justify-content:center; font-size:10px; color:var(--navy); font-weight:bold;
+  pointer-events:all;
+}
+.overlay-item.selected .resize-handle,
+.overlay-item.selected .delete-handle { display:flex; }
+.overlay-item.selected.text-item .edit-handle { display:flex; }
+
+/* Box measure */
+.box-measure-box { background:rgba(188,115,80,0.06); border:1px solid rgba(188,115,80,0.22); border-radius:8px; padding:12px; }
+.box-measure-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+.box-unit-tabs { display:flex; border-radius:6px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); margin-bottom:10px; width:fit-content; }
+.box-unit-tab { padding:5px 14px; font-size:11px; font-family:'Manrope',sans-serif; font-weight:500; cursor:pointer; color:var(--muted); background:transparent; border:none; transition:all 0.2s; }
+.box-unit-tab.active { background:var(--brand); color:var(--navy); font-weight:600; }
+.box-measure-result { font-family:'Manrope',sans-serif; font-weight:800; font-size:22px; color:var(--brand); letter-spacing:1.5px; margin-top:6px; min-height:28px; }
+.box-measure-status { font-size:11px; color:var(--muted); margin-top:4px; min-height:16px; }
+#boxSelectRect { position:absolute; border:2px dashed rgba(188,115,80,0.9); background:rgba(188,115,80,0.06); pointer-events:none; display:none; z-index:55; }
+
+/* Dots for calibration (green) and p-t-p (orange) */
+.ref-dot {
+  position:absolute; width:12px; height:12px; border-radius:50%;
+  border:2px solid white; transform:translate(-50%,-50%); pointer-events:none; z-index:30;
+}
+.ref-dot.green  { background: var(--green); }
+.ref-dot.orange { background: var(--measure); }
+
+/* Zoom area selection box */
+#zoomSelectBox {
+  position: absolute; border: 2px dashed rgba(255,159,67,0.8);
+  background: rgba(255,159,67,0.08); pointer-events: none; display: none; z-index: 60;
+}
+
+/* ZOOM CONTROLS */
+.zoom-controls {
+  position: absolute; bottom: 16px; right: 16px;
+  display: flex; flex-direction: column; gap: 4px; z-index: 50;
+}
+.zoom-btn {
+  width: 32px; height: 32px;
+  background: rgba(10,10,10,0.85); border: 1px solid rgba(188,115,80,0.3);
+  border-radius: 6px; color: var(--brand); font-size: 16px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; backdrop-filter: blur(4px);
+}
+.zoom-btn:hover  { background: rgba(188,115,80,0.15); border-color: var(--brand); }
+.zoom-btn.active { background: rgba(255,159,67,0.2); border-color: var(--measure); color: var(--measure); }
+.zoom-label {
+  background: rgba(10,10,10,0.85); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px; color: var(--muted); font-size: 10px; text-align: center; padding: 4px;
+  backdrop-filter: blur(4px); letter-spacing: 0.05em;
+}
+
+/* SIDEBAR */
+.sidebar { background: var(--navy2); border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; overflow-y:auto; }
+.section { padding:18px 22px; border-bottom:1px solid rgba(255,255,255,0.06); }
+.section-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:15px; letter-spacing:2px; color:var(--brand); margin-bottom:12px; }
+
+.upload-zone {
+  border:2px dashed rgba(188,115,80,0.3); border-radius:var(--radius);
+  padding:22px 14px; text-align:center; cursor:pointer; transition:all 0.25s;
+  background:rgba(188,115,80,0.03);
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--brand); background:rgba(188,115,80,0.07); }
+.upload-zone p { font-size:12px; color:var(--muted); margin-top:7px; }
+.upload-zone strong { color:var(--offwhite); }
+#wallInput, #logoInput { display:none; }
+
+.method-tabs { display:flex; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); margin-bottom:12px; }
+.method-tab {
+  flex:1; padding:8px 6px; font-size:11px; font-family:'Manrope',sans-serif;
+  font-weight:500; text-align:center; cursor:pointer; color:var(--muted);
+  background:transparent; border:none; transition:all 0.2s; line-height:1.3;
+}
+.method-tab.active { background:var(--brand); color:var(--navy); font-weight:600; }
+.method-tab:not(:last-child) { border-right:1px solid rgba(255,255,255,0.1); }
+.method-panel { display:none; }
+.method-panel.visible { display:block; }
+
+.dim-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.dim-field label { display:block; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:4px; }
+.dim-field input, .ref-size-input {
+  width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  border-radius:6px; padding:8px 10px; color:var(--offwhite);
+  font-family:'Manrope',sans-serif; font-size:13px; outline:none; transition:border 0.2s;
+}
+.dim-field input:focus, .ref-size-input:focus { border-color:var(--brand); }
+
+.ref-method-box { background:rgba(168,207,69,0.06); border:1px solid rgba(168,207,69,0.2); border-radius:8px; padding:12px; }
+.ref-method-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+.ref-status { font-size:11px; color:var(--green); margin-top:8px; min-height:16px; }
+.ref-size-row { display:flex; gap:8px; align-items:center; margin:10px 0; }
+.ref-size-row input { flex:1; }
+.ref-size-row span { font-size:11px; color:var(--muted); white-space:nowrap; }
+
+/* Point-to-point box */
+.ptp-box { background:rgba(255,159,67,0.06); border:1px solid rgba(255,159,67,0.22); border-radius:8px; padding:12px; }
+.ptp-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+.ptp-status { font-size:11px; color:var(--measure); margin-top:8px; min-height:16px; }
+.ptp-result { font-family:'Manrope',sans-serif; font-weight:800; font-size:24px; color:var(--measure); letter-spacing:1.5px; margin-top:5px; min-height:28px; }
+
+.action-btn {
+  width:100%; padding:9px; border-radius:7px; border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04); color:var(--offwhite); font-family:'Manrope',sans-serif;
+  font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  gap:7px; transition:all 0.2s; margin-top:8px;
+}
+.action-btn:hover   { border-color:var(--green); background:rgba(168,207,69,0.08); color:var(--green); }
+.action-btn.primary { background:rgba(168,207,69,0.12); border-color:rgba(168,207,69,0.3); color:var(--green); }
+.action-btn.ptp-primary { background:rgba(255,159,67,0.12); border-color:rgba(255,159,67,0.3); color:var(--measure); }
+.action-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+.add-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.add-btn {
+  padding:9px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.03); color:var(--offwhite); font-family:'Manrope',sans-serif;
+  font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  gap:6px; transition:all 0.2s;
+}
+.add-btn:hover { border-color:var(--brand); background:rgba(188,115,80,0.08); color:var(--brand); }
+
+.text-panel { background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; border:1px solid rgba(255,255,255,0.06); margin-bottom:10px; display:none; }
+.text-panel.visible { display:block; }
+.text-panel input, .text-panel select {
+  width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  border-radius:6px; padding:7px 10px; color:var(--offwhite); font-family:'Manrope',sans-serif;
+  font-size:12px; outline:none; margin-bottom:8px;
+}
+  .text-panel select option { color: #000; }
+.text-panel input:focus, .text-panel select:focus { border-color:var(--brand); }
+.text-panel label { font-size:10px; color:var(--muted); display:block; margin-bottom:3px; }
+.color-row { display:flex; gap:8px; align-items:center; }
+.color-row input[type=color] { width:32px; height:32px; border:none; border-radius:5px; cursor:pointer; padding:2px; background:transparent; }
+
+.items-list { display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+.item-row {
+  display:flex; align-items:center; gap:8px; padding:6px 10px;
+  background:rgba(255,255,255,0.03); border-radius:6px; border:1px solid rgba(255,255,255,0.06);
+  font-size:11px; color:var(--muted); cursor:pointer; transition:all 0.2s;
+}
+.item-row:hover, .item-row.active { border-color:var(--brand); color:var(--offwhite); }
+.empty-items { font-size:11px; color:var(--muted); font-style:italic; }
+
+.product-tabs { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; }
+.product-tab {
+  padding:5px 9px; border-radius:20px; border:1px solid rgba(255,255,255,0.12);
+  font-size:10px; color:var(--muted); cursor:pointer; transition:all 0.2s;
+  background:none; font-family:'Manrope',sans-serif; line-height:1.3; text-align:center;
+}
+.product-tab.active { background:var(--brand); color:var(--navy); border-color:var(--brand); font-weight:600; }
+
+.size-result { background:rgba(188,115,80,0.07); border:1px solid rgba(188,115,80,0.25); border-radius:var(--radius); padding:14px; display:none; }
+.size-result.visible { display:block; }
+.size-number { font-family:'Manrope',sans-serif; font-weight:800; font-size:30px; color:var(--brand2); letter-spacing:2px; }
+.size-label { font-size:11px; color:var(--muted); margin-top:2px; }
+.size-note { font-size:10px; color:var(--muted); margin-top:7px; line-height:1.5; }
+
+.scale-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(168,207,69,0.1); border:1px solid rgba(168,207,69,0.25); border-radius:5px; padding:4px 9px; font-size:10px; color:var(--green); margin-top:8px; }
+
+.disclaimer-box { background:rgba(188,115,80,0.06); border:1px solid rgba(188,115,80,0.2); border-radius:8px; padding:12px 14px; margin-bottom:12px; }
+.disclaimer-box p { font-size:10px; color:var(--muted); line-height:1.7; }
+.disclaimer-box strong { color:var(--offwhite); }
+.disclaimer-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:11px; letter-spacing:1.5px; color:var(--brand); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+
+.quote-btn {
+  width:100%; padding:14px; color:var(--navy);
+  font-family:'Manrope',sans-serif; font-weight:800; font-size:17px; letter-spacing:2px;
+  border:none; border-radius:var(--radius); cursor:pointer; transition:all 0.2s;
+  text-decoration:none; display:block; text-align:center; background: var(--brand);
+}
+.quote-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.hint-text { font-size:10px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.5; }
+
+.sidebar::-webkit-scrollbar { width:3px; }
+.sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+
+.toast {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(70px);
+  background:var(--steel); color:var(--offwhite); padding:10px 20px;
+  border-radius:8px; font-size:12px; border:1px solid rgba(188,115,80,0.3);
+  z-index:999; transition:transform 0.3s; pointer-events:none;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+.loading-screen {
+  position:fixed; inset:0; background:var(--navy);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  z-index:999;
+}
+.loading-screen img { height:48px; opacity:0.8; }
+.loading-screen p { font-size:11px; letter-spacing:0.15em; color:var(--muted); }
+
+/* HOW IT WORKS MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.visible { display:flex; }
+.modal-box {
+  background:var(--navy2); border:1px solid rgba(188,115,80,0.25); border-radius:14px;
+  max-width:560px; width:100%; max-height:85vh; overflow-y:auto; padding:26px 28px;
+}
+.modal-box::-webkit-scrollbar { width:3px; }
+.modal-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+.modal-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:22px; letter-spacing:3px; color:var(--brand); margin-bottom:3px; }
+.modal-sub   { font-size:12px; color:var(--muted); margin-bottom:20px; }
+.modal-step  { display:flex; gap:13px; margin-bottom:17px; }
+.modal-num {
+  width:28px; height:28px; border-radius:50%; background:var(--brand);
+  color:var(--navy); font-family:'Manrope',sans-serif; font-weight:800; font-size:16px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;
+}
+.modal-step-content h4 { font-size:13px; font-weight:600; color:var(--offwhite); margin-bottom:4px; }
+.modal-step-content p  { font-size:11px; color:var(--muted); line-height:1.7; }
+.modal-tip { background:rgba(188,115,80,0.06); border:1px solid rgba(188,115,80,0.2); border-radius:8px; padding:12px 14px; margin-top:14px; }
+.modal-tip p { font-size:11px; color:var(--muted); line-height:1.7; }
+.modal-tip strong { color:var(--brand); }
+.modal-close {
+  width:100%; padding:11px; background:var(--brand); color:var(--navy);
+  font-family:'Manrope',sans-serif; font-weight:800; font-size:16px; letter-spacing:2px;
+  border:none; border-radius:8px; cursor:pointer; margin-top:18px; transition:all 0.2s;
+}
+.modal-close:hover { background:var(--brand2); }
+
+@media(max-width:768px) {
+  .main { grid-template-columns:1fr; grid-template-rows:45vh 1fr; }
+  .step-pills { display:none; }
+  body { overflow:auto; }
+}
+</style>
+</head>
+<body>
+  <script>document.addEventListener('contextmenu',e=>e.preventDefault());document.onkeydown=e=>{if(e.ctrlKey&&(e.key==='u'||e.key==='s'))e.preventDefault();};</script>
+
+<!-- LOADING SCREEN -->
+<div class="loading-screen" id="loadingScreen">
+  <img src="/viewmark-logo.png" alt="ViewMark">
+  <p>Loading your visualizer...</p>
+</div>
+
+<!-- TRIAL BANNER -->
+<div class="trial-banner" id="trialBanner" style="display:none;">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#BC7350" stroke-width="1.2"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="#BC7350" stroke-width="1.3" stroke-linecap="round"/><circle cx="7" cy="9.5" r="0.7" fill="#BC7350"/></svg>
+  <span>Free trial — <strong id="trialDaysText"></strong> remaining.</span>
+  <div class="trial-banner-space"></div>
+  <a href="/cdn-cgi/l/email-protection#6b190a050f122b040d0d02080e060a190045080a54181e09010e081f563d020e1c260a19004b381e09180819021b1f020405">Upgrade to keep access →</a>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="client-logo-wrap" id="clientLogoWrap"></div>
+  <div class="header-divider-line"></div>
+  <div class="header-tool-name">Wall Visualizer</div>
+  <div class="header-space"></div>
+  <button class="how-to-btn" onclick="showModal()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 5C5 4.17 5.67 3.5 6.5 3.5S8 4.17 8 5c0 .83-.83 1.5-1.5 1.5V7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="6.5" cy="9.5" r="0.6" fill="currentColor"/></svg>
+    How To Use
+  </button>
+  <!-- PDF Export -->
+  <button class="icon-btn" onclick="exportPDF()" title="Save PDF">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1" width="8" height="11" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 1v3h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 7h6M4 9.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+  </button>
+  <!-- Save Session -->
+  <button class="icon-btn" onclick="saveSession()" title="Save session">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="4" y="1.5" width="6" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/><rect x="3" y="7.5" width="8" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg>
+  </button>
+  <!-- Load Session -->
+  <button class="icon-btn" onclick="document.getElementById('loadSessionInput').click()" title="Load session">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7V11.5a1 1 0 001 1h8a1 1 0 001-1V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M7 1.5V9M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <input type="file" id="loadSessionInput" accept=".json" style="display:none" onchange="loadSession(event)">
+  <!-- Snap to Grid toggle -->
+  <button class="icon-btn" id="snapBtn" onclick="toggleSnap()" title="Toggle snap to grid (S)">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="2.5" cy="2.5" r="1" fill="currentColor"/><circle cx="7" cy="2.5" r="1" fill="currentColor"/><circle cx="11.5" cy="2.5" r="1" fill="currentColor"/><circle cx="2.5" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="11.5" cy="7" r="1" fill="currentColor"/><circle cx="2.5" cy="11.5" r="1" fill="currentColor"/><circle cx="7" cy="11.5" r="1" fill="currentColor"/><circle cx="11.5" cy="11.5" r="1" fill="currentColor"/></svg>
+  </button>
+  <!-- Settings -->
+  <button class="icon-btn" onclick="showSettings()" title="Branding settings">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.636 2.636l1.06 1.06M10.304 10.304l1.06 1.06M11.364 2.636l-1.06 1.06M3.696 10.304l-1.06 1.06" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+  </button>
+  <div class="step-pills">
+    <div class="step-pill active" id="pill1">① Upload Wall</div>
+    <div class="step-pill" id="pill2">② Set Scale</div>
+    <div class="step-pill" id="pill3">③ Add Design</div>
+    <div class="step-pill" id="pill4">④ Results</div>
+  </div>
+  <button class="sign-out-btn" onclick="newSession()" title="Clear everything and start fresh" style="margin-right:4px;">↺ New</button>
+  <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="main">
+
+  <!-- CANVAS -->
+  <div class="canvas-area" id="canvasArea">
+    <div class="scale-warning" id="scaleWarning">⚠ Set your scale first — Step ② in the sidebar</div>
+    <div class="canvas-hint" id="canvasHint">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <rect x="3" y="3" width="50" height="50" rx="7" stroke="#A6A6A6" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <path d="M16 40 L24 26 L32 34 L38 24 L46 40Z" fill="#A6A6A6" opacity="0.35"/>
+        <circle cx="19" cy="19" r="4" fill="#A6A6A6" opacity="0.35"/>
+      </svg>
+      <p><strong>Upload a photo of your wall</strong><br>to get started</p>
+    </div>
+
+    <canvas id="wallCanvas"></canvas>
+    <canvas id="refCanvas"></canvas>
+    <canvas id="ptpCanvas"></canvas>
+    <div id="overlayContainer"></div>
+    <div id="zoomSelectBox"></div>
+    <div id="boxSelectRect"></div>
+
+    <!-- ZOOM CONTROLS -->
+    <div class="zoom-controls" id="zoomControls" style="display:none;">
+      <button class="zoom-btn" onclick="adjustZoom(0.25)" title="Zoom in">+</button>
+      <div class="zoom-label" id="zoomLabel">100%</div>
+      <button class="zoom-btn" onclick="adjustZoom(-0.25)" title="Zoom out">−</button>
+      <button class="zoom-btn" id="zoomAreaBtn" onclick="toggleZoomArea()" title="Drag to zoom area" style="font-size:14px;">⬚</button>
+      <button class="zoom-btn" onclick="resetZoom()" title="Reset zoom" style="font-size:11px;">⌂</button>
+    </div>
+    <div class="snap-grid-indicator" id="snapIndicator">SNAP ON</div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- STEP 1 -->
+    <div class="section">
+      <div class="section-title">① Wall Photo</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('wallInput').click()">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 3L14 18M9 8L14 3L19 8" stroke="#BC7350" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 20L5 24Q5 25 6 25L22 25Q23 25 23 24L23 20" stroke="#BC7350" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <p><strong>Click to upload</strong> or drag & drop<br>JPG or PNG of your wall</p>
+      </div>
+      <input type="file" id="wallInput" accept="image/*">
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="section">
+      <div class="section-title">② Set Scale</div>
+      <div class="method-tabs">
+        <button class="method-tab active" onclick="switchMethod('manual',this)">Enter Wall Size</button>
+        <button class="method-tab" onclick="switchMethod('click',this)">Click Reference</button>
+        <button class="method-tab" onclick="switchMethod('paper',this)">Paper Sheet</button>
+        <button class="method-tab" onclick="switchMethod('verify',this)">Verify Scale</button>
+      </div>
+      <div class="method-panel visible" id="methodManual">
+        <div class="dim-row">
+          <div class="dim-field"><label>Wall Width (ft)</label><input type="number" id="wallWidth" placeholder="e.g. 12" min="1" max="200" step="0.5"></div>
+          <div class="dim-field"><label>Wall Height (ft)</label><input type="number" id="wallHeight" placeholder="e.g. 9" min="1" max="100" step="0.5"></div>
+        </div>
+        <p style="font-size:10px;color:var(--muted);margin-top:8px;">Measure your actual wall and enter the dimensions above.</p>
+      </div>
+      <div class="method-panel" id="methodClick">
+        <div class="ref-method-box">
+          <p>Click on two ends of a known object in the photo. Then enter its real size.</p>
+          <button class="action-btn primary" onclick="startScaleClick()">Click Two Points on Photo</button>
+          <div class="ref-status" id="refStatus">Ready — upload a wall photo first.</div>
+          <div class="ref-size-row">
+            <input type="number" class="ref-size-input" id="refRealSize" placeholder="Real length" min="0.1" step="0.1">
+            <span>inches</span>
+          </div>
+          <button class="action-btn" onclick="applyRefMeasure()" id="applyRefBtn" disabled>✓ Apply This Measurement</button>
+        </div>
+      </div>
+      <div class="method-panel" id="methodPaper">
+        <div class="ref-method-box">
+          <p>Place a standard 8.5" × 11" sheet of paper flat on your wall and include it in the photo. Click its two short edges.</p>
+          <button class="action-btn primary" onclick="startPaperClick()">Mark Paper Sheet Edges</button>
+          <div class="ref-status" id="paperStatus">Ready — upload a wall photo first.</div>
+          <button class="action-btn" onclick="applyPaperMeasure()" id="applyPaperBtn" disabled>✓ Apply Paper Scale</button>
+        </div>
+      </div>
+      <div class="method-panel" id="methodVerify">
+        <div class="ref-method-box" style="border-color:rgba(255,159,67,0.3);background:rgba(255,159,67,0.05);">
+          <p style="color:var(--muted);">Already set your scale? Double-check it. Click two points on something you know the size of — a door, a ceiling tile, a parking space — and we'll tell you how close the scale is.</p>
+          <button class="action-btn ptp-primary" onclick="startVerifyClick()">Click Two Points to Check</button>
+          <div class="ref-status" id="verifyStatus" style="color:var(--measure);">Set scale first, then click here.</div>
+          <div class="ref-size-row" style="margin-top:8px;">
+            <input type="number" class="ref-size-input" id="verifyExpected" placeholder="What you expect" min="0.1" step="0.1">
+            <span>inches</span>
+          </div>
+          <button class="action-btn" onclick="runVerifyCheck()" id="runVerifyBtn" disabled>✓ Compare</button>
+          <div id="verifyResult" style="margin-top:10px;display:none;font-size:12px;line-height:1.7;"></div>
+        </div>
+      </div>
+      <div id="scaleBadge" style="display:none;margin-top:10px;">
+        <div class="scale-badge">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="#A8CF45" stroke-width="1.2"/><path d="M3.5 5L4.5 6L6.5 4" stroke="#A8CF45" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Scale set: <span id="scaleText"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="section">
+      <div class="section-title">③ Add Design</div>
+      <div class="add-btns">
+        <button class="add-btn" onclick="toggleTextPanel()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3h9M6.5 3v7M4.5 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Add Text
+        </button>
+        <button class="add-btn" onclick="document.getElementById('logoInput').click()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="8" rx="1.2" stroke="currentColor" stroke-width="1.3"/><circle cx="4.5" cy="5.5" r="1" fill="currentColor"/><path d="M1 9.5L4 7 L6.5 9 L8.5 7 L12 9.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Upload Logo
+        </button>
+      </div>
+      <input type="file" id="logoInput" accept="image/*">
+      <div class="text-panel" id="textPanel">
+        <label>Text Content</label>
+        <input type="text" id="textContent" placeholder="Your text here..." maxlength="80">
+        <label>Font</label>
+        <select id="textFont">
+          <option value="'Bebas Neue',sans-serif">Bebas Neue — Bold Display</option>
+          <option value="'Anton',sans-serif">Anton — Ultra Bold</option>
+          <option value="'Archivo Black',sans-serif">Archivo Black — Heavy</option>
+          <option value="'Fjalla One',sans-serif">Fjalla One — Condensed Bold</option>
+          <option value="'Teko',sans-serif">Teko — Tall Display</option>
+          <option value="'Black Han Sans',sans-serif">Black Han Sans — Wide Bold</option>
+          <option value="'Oswald',sans-serif">Oswald — Condensed</option>
+          <option value="'Roboto Condensed',sans-serif">Roboto Condensed</option>
+          <option value="'Raleway',sans-serif">Raleway — Elegant</option>
+          <option value="'Montserrat',sans-serif">Montserrat — Modern</option>
+          <option value="'Lato',sans-serif">Lato — Clean</option>
+          <option value="'Open Sans',sans-serif">Open Sans — Readable</option>
+          <option value="'Nunito',sans-serif">Nunito — Rounded</option>
+          <option value="'DM Sans',sans-serif">DM Sans — Minimal</option>
+          <option value="'Playfair Display',serif">Playfair Display — Serif</option>
+          <option value="'Merriweather',serif">Merriweather — Serif</option>
+          <option value="Georgia,serif">Georgia — Classic</option>
+          <option value="'Permanent Marker',cursive">Permanent Marker — Handwritten</option>
+          <option value="'Courier New',monospace">Courier — Technical</option>
+          <option value="Impact,sans-serif">Impact — Heavy</option>
+        </select>
+        <label>Colour</label>
+        <div class="color-row">
+          <input type="color" id="textColor" value="#ffffff">
+          <button class="add-btn" style="flex:1;padding:8px;font-size:11px;" onclick="addTextOverlay()">Add to Wall →</button>
+        </div>
+      </div>
+      <!-- EDIT TEXT PANEL (shown when a text item is selected) -->
+      <div class="text-panel" id="editTextPanel" style="display:none;border-color:rgba(188,115,80,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:10px;color:var(--brand);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Edit Selected Text</span>
+          <button onclick="closeEditPanel()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;">✕</button>
+        </div>
+        <label>Text Content</label>
+        <input type="text" id="editTextContent" placeholder="Edit text..." maxlength="80">
+        <label>Font</label>
+        <select id="editTextFont">
+          <option value="'Bebas Neue',sans-serif">Bebas Neue — Bold Display</option>
+          <option value="'Anton',sans-serif">Anton — Ultra Bold</option>
+          <option value="'Archivo Black',sans-serif">Archivo Black — Heavy</option>
+          <option value="'Fjalla One',sans-serif">Fjalla One — Condensed Bold</option>
+          <option value="'Teko',sans-serif">Teko — Tall Display</option>
+          <option value="'Black Han Sans',sans-serif">Black Han Sans — Wide Bold</option>
+          <option value="'Oswald',sans-serif">Oswald — Condensed</option>
+          <option value="'Roboto Condensed',sans-serif">Roboto Condensed</option>
+          <option value="'Raleway',sans-serif">Raleway — Elegant</option>
+          <option value="'Montserrat',sans-serif">Montserrat — Modern</option>
+          <option value="'Lato',sans-serif">Lato — Clean</option>
+          <option value="'Open Sans',sans-serif">Open Sans — Readable</option>
+          <option value="'Nunito',sans-serif">Nunito — Rounded</option>
+          <option value="'DM Sans',sans-serif">DM Sans — Minimal</option>
+          <option value="'Playfair Display',serif">Playfair Display — Serif</option>
+          <option value="'Merriweather',serif">Merriweather — Serif</option>
+          <option value="Georgia,serif">Georgia — Classic</option>
+          <option value="'Permanent Marker',cursive">Permanent Marker — Handwritten</option>
+          <option value="'Courier New',monospace">Courier — Technical</option>
+          <option value="Impact,sans-serif">Impact — Heavy</option>
+        </select>
+        <label>Colour</label>
+        <div class="color-row">
+          <input type="color" id="editTextColor" value="#ffffff">
+          <button class="add-btn" style="flex:1;padding:8px;font-size:11px;" onclick="applyTextEdit()">Apply Changes →</button>
+        </div>
+      </div>
+      <div class="items-list" id="itemsList">
+        <div class="empty-items" id="emptyItems">No elements added yet.</div>
+      </div>
+    </div>
+
+    <!-- BOX MEASURE -->
+    <div class="section">
+      <div class="section-title" style="color:var(--brand);">⬚ Box Measure</div>
+      <div class="box-measure-box">
+        <p>Drag a rectangle over any area to measure it. Save multiple measurements with labels.</p>
+        <div class="box-unit-tabs">
+          <button class="box-unit-tab active" id="boxUnitIn" onclick="setBoxUnit('in')">Inches</button>
+          <button class="box-unit-tab" id="boxUnitCm" onclick="setBoxUnit('cm')">Centimetres</button>
+        </div>
+        <button class="action-btn primary" id="boxMeasureBtn" onclick="startBoxMeasure()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1.5" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5 1.5"/></svg>
+          Draw Measure Box
+        </button>
+        <div class="box-measure-status" id="boxMeasureStatus">Set scale first, then draw a box.</div>
+        <div class="box-measure-result" id="boxMeasureResult"></div>
+        <div id="boxSaveRow" style="display:none;gap:6px;margin-top:8px;align-items:center;">
+          <input type="text" id="boxMeasureName" placeholder="Name this measurement..." maxlength="30"
+            style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 9px;color:var(--offwhite);font-family:'Manrope',sans-serif;font-size:11px;outline:none;">
+          <button onclick="saveBoxMeasurement()" style="padding:6px 11px;background:var(--brand);color:var(--navy);border:none;border-radius:6px;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>
+        </div>
+        <button class="action-btn" id="clearBoxBtn" onclick="clearBoxMeasure()" style="display:none;margin-top:6px;">✕ Clear & Draw Again</button>
+        <div id="savedMeasurementsList" style="margin-top:10px;display:flex;flex-direction:column;gap:5px;"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title" style="color:var(--measure);">⟷ Point-to-Point Measure</div>
+      <div class="ptp-box">
+        <p>Click any two points on the photo to measure the real-world distance between them. Scale must be set first.</p>
+        <button class="action-btn ptp-primary" onclick="startPtp()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1.5" y1="6.5" x2="11.5" y2="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 4.5v4M11.5 4.5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Measure Distance
+        </button>
+        <div class="ptp-status" id="ptpStatus">Set scale first, then click Measure Distance.</div>
+        <div class="ptp-result" id="ptpResult"></div>
+        <button class="action-btn" id="clearPtpBtn" onclick="clearPtp()" style="display:none;">✕ Clear Measurement</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="section">
+      <div class="section-title">④ Product & Size</div>
+      <div class="product-tabs">
+        <button class="product-tab active" data-type="letters" onclick="selectProduct(this)">Dimensional Letters/Logo</button>
+        <button class="product-tab" data-type="vinyl"   onclick="selectProduct(this)">Cut Vinyl Graphics</button>
+        <button class="product-tab" data-type="mural"   onclick="selectProduct(this)">Wall Mural</button>
+        <button class="product-tab" data-type="element" onclick="selectProduct(this)">Sign Element</button>
+      </div>
+      <div class="size-result" id="sizeResult">
+        <div class="size-number" id="sizeNumber">—</div>
+        <div class="size-label"  id="sizeLabel">Estimated size</div>
+        <div class="size-note"   id="sizeNote"></div>
+      </div>
+      <p class="hint-text" id="sizeHint">Set scale and add a design element to calculate size.</p>
+    </div>
+
+    <!-- DISCLAIMER + QUOTE -->
+    <div class="section">
+      <div class="disclaimer-box">
+        <div class="disclaimer-title">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#BC7350" stroke-width="1.1"/><line x1="6.5" y1="4" x2="6.5" y2="7" stroke="#BC7350" stroke-width="1.3" stroke-linecap="round"/><circle cx="6.5" cy="9" r="0.6" fill="#BC7350"/></svg>
+          Measurement Disclaimer
+        </div>
+        <p>All dimensions shown are <strong>estimations only</strong>. Always take <strong>real-life measurements</strong> of your wall before placing an order. Actual results may vary based on photo angle and reference accuracy.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-box" style="position:relative;">
+    <button class="settings-close-btn" onclick="closeSettings()">✕</button>
+    <div class="settings-title">Branding Settings</div>
+    <p class="settings-sub">Update your logo, brand colour, and contact link. Changes save immediately.</p>
+    <div class="settings-field">
+      <label>Company Name</label>
+      <input type="text" id="settingsCompany" placeholder="Acme Signs Co.">
+    </div>
+    <div class="settings-field">
+      <label>Company Logo</label>
+      <div class="settings-logo-upload" id="settingsLogoZone">
+        <input type="file" id="settingsLogoFile" accept="image/png,image/svg+xml,image/jpeg,image/webp">
+        <img id="settingsLogoPreview" style="max-height:44px;max-width:180px;margin:0 auto 8px;display:none;" alt="Logo">
+        <p id="settingsLogoPrompt"><strong>Click to upload</strong> new logo<br>PNG, SVG or JPG</p>
+      </div>
+    </div>
+    <div class="settings-field">
+      <label>Brand Colour</label>
+      <div class="settings-color-row">
+        <input type="color" id="settingsBrandColor" value="#BC7350">
+        <span id="settingsColorHex">#BC7350</span>
+      </div>
+    </div>
+    <div class="settings-field">
+      <label>Contact / Quote URL</label>
+      <input type="url" id="settingsContactUrl" placeholder="https://yoursignshop.com/contact">
+    </div>
+    <button class="settings-save-btn" onclick="saveSettings()">Save Branding</button>
+  </div>
+</div>
+
+<!-- HOW IT WORKS MODAL -->
+<div class="modal-overlay" id="howToModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-title">How to Use ViewMark</div>
+    <div class="modal-sub">See your sign, logo, or graphic exactly how it will look — before you order.</div>
+
+    <div class="modal-tip" style="margin-bottom:16px;border-color:rgba(188,115,80,0.3);">
+      <p><strong style="color:var(--brand);">What ViewMark is for:</strong> Interior office walls, reception areas, storefronts, retail spaces, and vehicle graphics. It can be used for any application where you need to visualise elements in a photo to scale — helpful for presentations or building an estimate based on available information. <strong style="color:var(--offwhite);">It is not intended for large building exteriors or architectural signage.</strong></p>
+    </div>
+
+    <div class="modal-step">
+      <div class="modal-num">1</div>
+      <div class="modal-step-content">
+        <h4>Upload a Photo</h4>
+        <p>Take a straight-on photo of your wall, storefront, or vehicle at eye level. Drag and drop or click the upload zone. JPG or PNG works fine. Use <strong style="color:var(--offwhite);">↺ New</strong> in the header anytime to clear everything and start fresh.</p>
+      </div>
+    </div>
+    <div class="modal-step">
+      <div class="modal-num">2</div>
+      <div class="modal-step-content">
+        <h4>Set the Scale</h4>
+        <p><strong style="color:var(--offwhite);">Enter Wall Size</strong> — type the width & height in feet.<br>
+        <strong style="color:var(--offwhite);">Click Reference</strong> — click two ends of any known object (door = 80", desk = 60") and enter its real length in inches.<br>
+        <strong style="color:var(--offwhite);">Paper Sheet</strong> — tape a standard 8.5"×11" sheet to the surface, photograph it, then click both short edges.<br>
+        <strong style="color:var(--offwhite);">Verify Scale</strong> — once scale is set, click two points on something else you know the size of (a door, a ceiling tile) and we'll tell you how close the scale is. Quote with confidence.</p>
+      </div>
+    </div>
+    <div class="modal-step">
+      <div class="modal-num">3</div>
+      <div class="modal-step-content">
+        <h4>Add Your Design</h4>
+        <p>Upload your logo (PNG with transparent background works best) or type text in any of 20 fonts. Drag to position. Resize from the gold corner handle. Delete with the red ✕. Click a text element to edit it inline.</p>
+      </div>
+    </div>
+    <div class="modal-step">
+      <div class="modal-num">4</div>
+      <div class="modal-step-content">
+        <h4>Get the Size & Product Estimate</h4>
+        <p>Select the sign type — Dimensional Letters/Logo, Cut Vinyl, Wall Mural, or Sign Element. The estimated size updates live as you drag and resize your overlay — useful for building a quote.</p>
+      </div>
+    </div>
+    <div class="modal-step">
+      <div class="modal-num" style="background:var(--measure);font-size:14px;">⟷</div>
+      <div class="modal-step-content">
+        <h4>Point-to-Point Measurement</h4>
+        <p>Once scale is set, click any two points on the photo to instantly measure the real-world distance between them — great for checking clearances and spacing.</p>
+      </div>
+    </div>
+    <div class="modal-step">
+      <div class="modal-num" style="background:rgba(188,115,80,0.3);font-size:13px;">⬚</div>
+      <div class="modal-step-content">
+        <h4>Box Measure</h4>
+        <p>Drag a rectangle over any area of the photo to measure its width and height. Save measurements with custom labels and toggle between inches and centimetres. Perfect for scoping available space before designing.</p>
+      </div>
+    </div>
+    <div class="modal-tip">
+      <p><strong>Zoom:</strong> Use +/− buttons or scroll wheel to zoom. Click <strong>⬚</strong> then drag a box to zoom into a specific area. Use <strong>⌂</strong> to reset the view.<br><br>
+      <strong>Save your work:</strong> Use the save icon in the header to download a session file. Reload it anytime to pick up where you left off.<br><br>
+      <strong>Best results:</strong> Shoot straight-on at eye level with even lighting. Avoid wide-angle or fisheye lenses.</p>
+    </div>
+    <button class="modal-close" onclick="closeModal()">GOT IT — LET'S GO</button>
+  </div>
+</div>
+  
+  <script>
+const SUPABASE_URL='https://xjmmfqjwyqbqhchehowy.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqbW1mcWp3eXFicWhjaGVob3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzIyMzksImV4cCI6MjA5MTE0ODIzOX0.uLNZR_CF9guwZiXjWmPtM7oEGeedGYgS2TIMpE1J02w';
+const vmSupabase=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+// ===== AUTH + CONFIG =====
+let clientConfig = null;
+
+(async function(){
+  // Helper: retry a Supabase call up to maxTries times
+  async function withRetry(fn, maxTries = 3, delayMs = 800) {
+    for (let i = 0; i < maxTries; i++) {
+      try { return await fn(); } catch(e) {
+        if (i < maxTries - 1) await new Promise(r => setTimeout(r, delayMs));
+        else throw e;
+      }
+    }
+  }
+
+  function showErrorScreen(msg, showRetry = true) {
+    document.getElementById('loadingScreen').innerHTML = `
+      <img src="/viewmark-logo.png" alt="ViewMark" style="height:48px;opacity:0.8;">
+      <p style="color:#ff8a8a;margin-top:16px;font-size:13px;">${msg}</p>
+      ${showRetry ? `
+      <button onclick="window.location.reload()" style="margin-top:16px;padding:9px 22px;background:#BC7350;color:#0A0A0A;border:none;border-radius:8px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">
+        Try Again
+      </button>` : ''}
+      <p style="margin-top:12px;font-size:11px;color:#A6A6A6;">
+        <span onclick="window.location.href='/login.html'" style="cursor:pointer;color:#BC7350;text-decoration:underline;">← Sign in again</span>
+      </p>`;
+  }
+
+  // ===== Token pass-through from trial.html signup =====
+  // trial.html redirects new users here with their session in the URL hash:
+  //   #access_token=xxx&refresh_token=yyy&type=signup
+  // Hash fragments stay client-side (never hit server logs), so it's safe
+  // to put tokens there. We hydrate the session so the user never has to
+  // log in manually after trial signup.
+  if (window.location.hash) {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token && refresh_token) {
+      try {
+        await vmSupabase.auth.setSession({ access_token, refresh_token });
+        // Strip tokens from URL bar so they don't sit in browser history
+        history.replaceState({}, '', window.location.pathname + window.location.search);
+      } catch (err) {
+        console.warn('Hash token hydration failed:', err);
+      }
+    }
+  }
+  // Check session — redirect silently if missing/expired
+  let session;
+  try {
+    const { data } = await vmSupabase.auth.getSession();
+    session = data.session;
+  } catch(e) {
+    // Network error getting session — retry once
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      const { data } = await vmSupabase.auth.getSession();
+      session = data.session;
+    } catch(e2) {
+      showErrorScreen('Could not connect. Please check your internet connection.');
+      return;
+    }
+  }
+  if (!session) { window.location.href = '/login.html'; return; }
+
+  try {
+    const userId = session.user.id;
+    // Retry config load up to 3 times — handles transient Supabase hiccups
+    const { data: configRow, error: configError } = await withRetry(() =>
+      vmSupabase.from('viewmark_configs').select('config').eq('user_id', userId).single()
+    );
+    if (configError || !configRow) {
+      const meta = session.user.user_metadata || {};
+      clientConfig = { companyName: meta.company || 'My Company', email: session.user.email,
+        contactUrl: '', brandColor: '#BC7350', logoBase64: '', plan: 'pro',
+        trialStart: session.user.created_at, active: true };
+    } else { clientConfig = configRow.config; }
+
+    const trialStart = new Date(clientConfig.trialStart || session.user.created_at);
+    const daysSinceStart = Math.floor((new Date() - trialStart) / (1000 * 60 * 60 * 24));
+    const trialDaysLeft = Math.max(0, 14 - daysSinceStart);
+    if (!clientConfig.paid && trialDaysLeft <= 0) {
+      document.getElementById('loadingScreen').innerHTML = `
+        <img src="/viewmark-logo.png" alt="ViewMark">
+        <p style="color:#ff8a8a;margin-top:16px;">Your free trial has ended.</p>
+        <p style="font-size:12px;color:#A6A6A6;margin-top:8px;">Contact <a href="mailto:randy@officemark.ca" style="color:#BC7350;">randy@officemark.ca</a> to continue.</p>`;
+      return;
+    }
+    applyBranding(clientConfig);
+    if (!clientConfig.paid && trialDaysLeft > 0) {
+      document.getElementById('trialBanner').style.display = 'flex';
+      document.getElementById('trialDaysText').textContent =
+        `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''}`;
+      document.querySelector('.main').style.height = `calc(100vh - 60px - 36px)`;
+    }
+    document.getElementById('loadingScreen').style.display = 'none';
+  } catch(err) {
+    console.error('Init error:', err);
+    // If it looks like an auth/token error, redirect to login silently
+    if (err.message && (err.message.includes('JWT') || err.message.includes('token') || err.message.includes('auth'))) {
+      window.location.href = '/login.html';
+      return;
+    }
+    showErrorScreen('Could not load your account. This is usually temporary.');
+  }
+})();
+
+// Brand colors that were defaults at some point in the app's history.
+// If a user's stored brandColor matches one of these, treat it as "not
+// truly customized" so the CSS default (the current default) wins.
+// Otherwise existing users would be permanently stuck on the old default
+// after a brand refresh. Add new defaults to this list whenever the
+// CSS --brand value changes.
+const OLD_BRAND_DEFAULTS = ['#c8a96e', '#E85D2F', '#BC7350'];
+
+function applyBranding(config) {
+  if (config.brandColor && !OLD_BRAND_DEFAULTS.includes(config.brandColor)) {
+    document.documentElement.style.setProperty('--brand',  config.brandColor);
+    document.documentElement.style.setProperty('--brand2', config.brandColor);
+  }
+  const logoWrap = document.getElementById('clientLogoWrap');
+  if (config.logoBase64 && config.logoBase64.length > 100) {
+    logoWrap.innerHTML = `<img src="${config.logoBase64}" alt="${config.companyName || 'Logo'}" style="height:38px;width:auto;max-width:180px;object-fit:contain;">`;
+  } else {
+    logoWrap.innerHTML = `<div class="client-logo-text">${config.companyName || 'ViewMark'}</div>`;
+  }
+  const quoteBtn = document.getElementById('quoteBtn');
+  if (quoteBtn) quoteBtn.href = config.contactUrl || ('mailto:' + (config.email || ''));
+}
+
+async function signOut(){await vmSupabase.auth.signOut();window.location.href='/login.html';}
+
+function newSession() {
+  if (overlayItems.length > 0 || wallImg) {
+    if (!confirm('Start a new session? Your current work will be cleared.')) return;
+  }
+  // Reset all state
+  wallImg = null; canvasW = 0; canvasH = 0;
+  overlayItems = []; selectedItem = null; itemCounter = 0;
+  pxPerInch = null; scaleMode = null; scalePoints = [];
+  ptpActive = false; ptpPoints = []; ptpDots = [];
+  zoom = 1.0; panX = 0; panY = 0;
+  savedMeasurements = [];
+  snapEnabled = false;
+  // Reset UI
+  [wallCvs, refCvs, ptpCvs].forEach(c => { c.style.display='none'; c.getContext('2d').clearRect(0,0,c.width,c.height); });
+  overlayEl.style.display = 'none';
+  overlayEl.innerHTML = '';
+  document.getElementById('canvasHint').style.display = 'flex';
+  document.getElementById('zoomControls').style.display = 'none';
+  document.getElementById('scaleBadge').style.display = 'none';
+  document.getElementById('wallWidth').value = '';
+  document.getElementById('wallHeight').value = '';
+  document.getElementById('snapBtn').style.background = '';
+  document.getElementById('snapBtn').style.borderColor = '';
+  document.getElementById('snapBtn').style.color = '';
+  document.getElementById('snapIndicator').style.display = 'none';
+  document.querySelectorAll('.ref-dot').forEach(d => d.remove());
+  clearPtp();
+  clearBoxMeasure();
+  updateItemsList();
+  renderSavedMeasurements();
+  updateScaleWarning();
+  document.getElementById('sizeResult').classList.remove('visible');
+  document.getElementById('sizeHint').style.display = 'block';
+  document.getElementById('editTextPanel').style.display = 'none';
+  updatePills(1);
+  showToast('Ready for a new session!');
+}
+
+// ===== STATE =====
+let wallImg = null, canvasW = 0, canvasH = 0;
+let overlayItems = [], selectedItem = null, selectedProduct = 'letters', itemCounter = 0;
+let pxPerInch = null;
+let scaleMode = null, scalePoints = [];
+let ptpActive = false, ptpPoints = [], ptpDots = [];
+let zoom = 1.0;
+let panX = 0, panY = 0; // pan offset in canvas-area pixels
+const ZOOM_MIN = 0.2, ZOOM_MAX = 5.0;
+let isPanning = false, panStartX = 0, panStartY = 0, panStartOffX = 0, panStartOffY = 0;
+let zoomAreaMode = false, zoomAreaDrag = false, zoomAreaStart = null;
+let boxMeasureMode = false, boxMeasureDrag = false, boxMeasureStart = null, boxUnit = 'in';
+let snapEnabled = false;
+const SNAP_SIZE = 20; // pixels in canvas space
+
+// Canvas elements
+const wallCvs = document.getElementById('wallCanvas');
+const wallCtx = wallCvs.getContext('2d');
+const refCvs  = document.getElementById('refCanvas');
+const refCtx  = refCvs.getContext('2d');
+const ptpCvs  = document.getElementById('ptpCanvas');   // isolated — only p-t-p draws here
+const ptpCtx  = ptpCvs.getContext('2d');
+const overlayEl  = document.getElementById('overlayContainer');
+const canvasArea = document.getElementById('canvasArea');
+const zoomBox    = document.getElementById('zoomSelectBox');
+
+// ===== MODAL =====
+function showModal()  { document.getElementById('howToModal').classList.add('visible'); }
+function closeModal() { document.getElementById('howToModal').classList.remove('visible'); }
+
+// ===== WALL UPLOAD =====
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) loadWall(f);
+});
+document.getElementById('wallInput').addEventListener('change', e => { if (e.target.files[0]) loadWall(e.target.files[0]); });
+
+function loadWall(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      wallImg = img; zoom = 1.0; panX = 0; panY = 0;
+      resizeCanvases(); drawWall();
+      // Clear all drawing canvases on new photo
+      refCtx.clearRect(0, 0, wallCvs.width, wallCvs.height);
+      ptpCtx.clearRect(0, 0, wallCvs.width, wallCvs.height);
+      clearScaleDots(); clearPtp();
+      [wallCvs, refCvs, ptpCvs].forEach(c => c.style.display = 'block');
+      overlayEl.style.display = 'block';
+      document.getElementById('canvasHint').style.display = 'none';
+      document.getElementById('zoomControls').style.display = 'flex';
+      updatePills(2);
+      updateRefStatusText();
+      updateScaleWarning();
+      showToast('Wall photo loaded! Now set the scale.');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resizeCanvases() {
+  const aW = canvasArea.clientWidth, aH = canvasArea.clientHeight;
+  const ratio = wallImg.width / wallImg.height;
+  let w = aW, h = aW / ratio;
+  if (h > aH) { h = aH; w = aH * ratio; }
+  w = Math.floor(w); h = Math.floor(h);
+  const offL = Math.floor((aW - w) / 2);
+  const offT = Math.floor((aH - h) / 2);
+  [wallCvs, refCvs, ptpCvs].forEach(c => {
+    c.width = w; c.height = h;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.style.left = offL + 'px'; c.style.top = offT + 'px';
+  });
+  overlayEl.style.left = offL + 'px'; overlayEl.style.top = offT + 'px';
+  overlayEl.style.width = w + 'px'; overlayEl.style.height = h + 'px';
+  canvasW = w; canvasH = h;
+  applyZoom();
+}
+
+function drawWall() {
+  wallCtx.clearRect(0, 0, canvasW, canvasH);
+  if (wallImg) wallCtx.drawImage(wallImg, 0, 0, canvasW, canvasH);
+}
+
+// ===== ZOOM =====
+function applyZoom() {
+  [wallCvs, refCvs, ptpCvs, overlayEl].forEach(el => {
+    el.style.transformOrigin = 'top left';
+    el.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  });
+  document.getElementById('zoomLabel').textContent = Math.round(zoom * 100) + '%';
+  repositionDots();
+  // Show grab cursor hint when zoomed in and not in another mode
+  if (!scaleMode && !ptpActive && !zoomAreaMode && !boxMeasureMode && !isPanning) {
+    canvasArea.style.cursor = zoom > 1.0 ? 'grab' : '';
+  }
+}
+
+function adjustZoom(delta) {
+  zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +(zoom + delta).toFixed(2)));
+  applyZoom();
+}
+function resetZoom() { zoom = 1.0; panX = 0; panY = 0; applyZoom(); }
+
+canvasArea.addEventListener('wheel', e => {
+  if (!wallImg) return;
+  e.preventDefault();
+  adjustZoom(e.deltaY < 0 ? 0.1 : -0.1);
+}, { passive: false });
+
+// Zoom-to-area
+function toggleZoomArea() {
+  zoomAreaMode = !zoomAreaMode;
+  document.getElementById('zoomAreaBtn').classList.toggle('active', zoomAreaMode);
+  canvasArea.style.cursor = zoomAreaMode ? 'crosshair' : '';
+  if (!zoomAreaMode) { zoomBox.style.display = 'none'; zoomAreaDrag = false; }
+}
+
+canvasArea.addEventListener('mousedown', e => {
+  if (zoomAreaMode && wallImg) {
+    zoomAreaDrag = true;
+    const r = canvasArea.getBoundingClientRect();
+    zoomAreaStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+    zoomBox.style.cssText = `display:block;left:${zoomAreaStart.x}px;top:${zoomAreaStart.y}px;width:0;height:0;`;
+    e.preventDefault(); e.stopPropagation();
+  }
+});
+
+canvasArea.addEventListener('mousemove', e => {
+  if (!zoomAreaDrag) return;
+  const r = canvasArea.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  const x = Math.min(zoomAreaStart.x, cx), y = Math.min(zoomAreaStart.y, cy);
+  const w = Math.abs(cx - zoomAreaStart.x), h = Math.abs(cy - zoomAreaStart.y);
+  Object.assign(zoomBox.style, { left: x+'px', top: y+'px', width: w+'px', height: h+'px' });
+});
+
+canvasArea.addEventListener('mouseup', e => {
+  if (!zoomAreaDrag) return;
+  zoomAreaDrag = false;
+  zoomBox.style.display = 'none';
+  const r  = canvasArea.getBoundingClientRect();
+  const ex = e.clientX - r.left, ey = e.clientY - r.top;
+  const selX = Math.min(zoomAreaStart.x, ex);
+  const selY = Math.min(zoomAreaStart.y, ey);
+  const selW = Math.abs(ex - zoomAreaStart.x), selH = Math.abs(ey - zoomAreaStart.y);
+  if (selW > 20 && selH > 20) {
+    const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN,
+      +(Math.min(canvasArea.clientWidth / selW, canvasArea.clientHeight / selH)).toFixed(2)));
+    // Pan so the selected box top-left maps to canvas origin, then center it
+    const canvasOffL = parseFloat(wallCvs.style.left) || 0;
+    const canvasOffT = parseFloat(wallCvs.style.top)  || 0;
+    // selX/selY are in canvasArea coords; convert to canvas-image coords
+    const imgX = (selX - canvasOffL) / zoom - panX / zoom;
+    const imgY = (selY - canvasOffT) / zoom - panY / zoom;
+    // After zoom, we want imgX*newZoom to appear at center of viewport
+    panX = canvasArea.clientWidth  / 2 - (imgX + selW / zoom / 2) * newZoom - canvasOffL;
+    panY = canvasArea.clientHeight / 2 - (imgY + selH / zoom / 2) * newZoom - canvasOffT;
+    zoom = newZoom;
+    applyZoom();
+  }
+  zoomAreaMode = false;
+  document.getElementById('zoomAreaBtn').classList.remove('active');
+  canvasArea.style.cursor = '';
+});
+
+// ===== SCALE CALIBRATION =====
+let scaleMethod = 'manual';
+
+function switchMethod(m, btn) {
+  scaleMethod = m;
+  document.querySelectorAll('.method-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['methodManual','methodClick','methodPaper','methodVerify'].forEach(id => document.getElementById(id).classList.remove('visible'));
+  const map = { manual:'methodManual', click:'methodClick', paper:'methodPaper', verify:'methodVerify' };
+  document.getElementById(map[m]).classList.add('visible');
+  cancelScale();
+}
+
+// ===== VERIFY SCALE =====
+// After scale is set via one of the other methods, the user clicks two
+// points on something else they know the size of. We measure that
+// distance with the existing pxPerInch and compare to what they expected,
+// reporting tolerance. We never change pxPerInch here — this is a
+// confidence check, not a re-calibration.
+let verifyPoints = [];
+
+function startVerifyClick() {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first using one of the other tabs.'); return; }
+  scaleMode = 'verify'; scalePoints = []; verifyPoints = [];
+  clearRefCanvas(); clearScaleDots();
+  canvasArea.classList.add('measuring');
+  document.getElementById('verifyStatus').textContent = 'Click point 1 on something you know the size of.';
+  document.getElementById('runVerifyBtn').disabled = true;
+  document.getElementById('verifyResult').style.display = 'none';
+}
+
+function runVerifyCheck() {
+  if (!pxPerInch) { showToast('Set your scale first.'); return; }
+  const expected = parseFloat(document.getElementById('verifyExpected').value);
+  if (!expected || verifyPoints.length < 2) { showToast('Click two points first, then enter what you expect it to measure.'); return; }
+  const p1 = verifyPoints[0], p2 = verifyPoints[1];
+  const pxDist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+  if (pxDist < 5) { showToast('Points are too close together. Try again with more spread.'); return; }
+  const measured = pxDist / pxPerInch;
+  const diff = measured - expected;
+  const pctDiff = Math.abs(diff / expected * 100);
+
+  let assessment, color;
+  if (pctDiff <= 2) {
+    assessment = '✓ Tight match — your scale is solid. Quote with confidence.';
+    color = 'var(--green)';
+  } else if (pctDiff <= 5) {
+    assessment = '~ Close enough to quote. Verify on-site before building.';
+    color = 'var(--measure)';
+  } else {
+    assessment = '⚠ Off by more than 5%. Either your reference was wrong, or your scale was. Reset and try again.';
+    color = 'var(--danger)';
+  }
+
+  const sign = diff >= 0 ? '+' : '';
+  const measuredStr = measured >= 12 ? `${measured.toFixed(1)}" (${(measured/12).toFixed(2)} ft)` : `${measured.toFixed(1)}"`;
+  const expectedStr = expected >= 12 ? `${expected.toFixed(1)}" (${(expected/12).toFixed(2)} ft)` : `${expected.toFixed(1)}"`;
+
+  const resultEl = document.getElementById('verifyResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div style="color:var(--muted);">You expected: <strong style="color:var(--offwhite);">${expectedStr}</strong></div>
+    <div style="color:var(--muted);">We measure: <strong style="color:var(--offwhite);">${measuredStr}</strong></div>
+    <div style="color:var(--muted);">Difference: <strong style="color:var(--offwhite);">${sign}${diff.toFixed(1)}" (${pctDiff.toFixed(1)}%)</strong></div>
+    <div style="margin-top:8px;color:${color};font-weight:600;">${assessment}</div>
+  `;
+
+  document.getElementById('verifyStatus').textContent = '✓ Check complete.';
+  document.getElementById('runVerifyBtn').disabled = true;
+  scaleMode = null; canvasArea.classList.remove('measuring');
+}
+
+document.getElementById('wallWidth').addEventListener('input', computeManualScale);
+document.getElementById('wallHeight').addEventListener('input', computeManualScale);
+
+function computeManualScale() {
+  const wft = parseFloat(document.getElementById('wallWidth').value);
+  const hft = parseFloat(document.getElementById('wallHeight').value);
+  if (wft && hft && canvasW) {
+    pxPerInch = canvasW / (wft * 12);
+    showScaleBadge(`1" = ${pxPerInch.toFixed(1)}px  (wall ${wft}′ × ${hft}′)`);
+    updateSizeResult(); updateItemsList();
+  }
+}
+
+function startScaleClick() {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  scaleMode = 'click'; scalePoints = [];
+  clearRefCanvas(); clearScaleDots();
+  canvasArea.classList.add('measuring');
+  document.getElementById('refStatus').textContent = 'Click point 1 on your reference object.';
+  document.getElementById('applyRefBtn').disabled = true;
+}
+
+function startPaperClick() {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  scaleMode = 'paper'; scalePoints = [];
+  clearRefCanvas(); clearScaleDots();
+  canvasArea.classList.add('measuring');
+  document.getElementById('paperStatus').textContent = 'Click one short edge of the paper sheet.';
+  document.getElementById('applyPaperBtn').disabled = true;
+}
+
+function cancelScale() {
+  scaleMode = null; scalePoints = [];
+  canvasArea.classList.remove('measuring');
+  clearRefCanvas(); clearScaleDots();
+}
+
+function clearRefCanvas() { refCtx.clearRect(0, 0, canvasW, canvasH); }
+function clearScaleDots() { document.querySelectorAll('.ref-dot.green').forEach(d => d.remove()); }
+
+function applyRefMeasure() {
+  const real = parseFloat(document.getElementById('refRealSize').value);
+  if (!real || scalePoints.length < 2) { showToast('Enter the real size first.'); return; }
+  pxPerInch = ptDist(scalePoints[0], scalePoints[1]) / real;
+  showScaleBadge(`1" = ${pxPerInch.toFixed(1)}px  (from reference object)`);
+  clearRefCanvas(); clearScaleDots();
+  updateSizeResult(); updateItemsList();
+  showToast('Scale applied!');
+}
+
+function applyPaperMeasure() {
+  showScaleBadge(`1" = ${pxPerInch.toFixed(1)}px  (from paper sheet)`);
+  clearRefCanvas(); clearScaleDots();
+  updateSizeResult(); updateItemsList();
+  showToast('Scale applied from paper sheet!');
+}
+
+function showScaleBadge(txt) {
+  document.getElementById('scaleBadge').style.display = 'block';
+  document.getElementById('scaleText').textContent = txt;
+  updateScaleWarning();
+}
+
+// Show or hide the "set your scale first" banner based on current state.
+// Visible when a wall photo is loaded but pxPerInch hasn't been computed yet.
+function updateScaleWarning() {
+  const w = document.getElementById('scaleWarning');
+  if (!w) return;
+  w.classList.toggle('visible', !!(wallImg && !pxPerInch));
+}
+
+function updateRefStatusText() {
+  if (wallImg) {
+    document.getElementById('refStatus').textContent   = 'Ready — click "Click Two Points" above.';
+    document.getElementById('paperStatus').textContent = 'Ready — click "Mark Paper Sheet Edges" above.';
+  }
+}
+
+// ===== UNIFIED CANVAS CLICK ROUTER =====
+canvasArea.addEventListener('click', e => {
+  if (zoomAreaMode) return;
+  const rect = wallCvs.getBoundingClientRect();
+  // rect already reflects the current transform, so these coords are correct in canvas space
+  const x = (e.clientX - rect.left) / zoom;
+  const y = (e.clientY - rect.top)  / zoom;
+
+  if (ptpActive)   { handlePtpClick(x, y); return; }
+  if (!scaleMode)  return;
+  if (x < 0 || x > canvasW || y < 0 || y > canvasH) return;
+
+  scalePoints.push({ x, y });
+  placeDot(x, y, 'green');
+
+  if (scaleMode === 'click') {
+    if (scalePoints.length === 1) {
+      document.getElementById('refStatus').textContent = 'Click point 2 on the same object.';
+    } else if (scalePoints.length === 2) {
+      drawLine(refCtx, scalePoints[0], scalePoints[1], '#A8CF45');
+      document.getElementById('refStatus').textContent = `${ptDist(scalePoints[0], scalePoints[1]).toFixed(0)}px measured. Enter real length below.`;
+      document.getElementById('applyRefBtn').disabled = false;
+      scaleMode = null; canvasArea.classList.remove('measuring');
+    }
+  } else if (scaleMode === 'paper') {
+    if (scalePoints.length === 1) {
+      document.getElementById('paperStatus').textContent = 'Click the other short edge.';
+    } else if (scalePoints.length === 2) {
+      const dist = ptDist(scalePoints[0], scalePoints[1]);
+      drawLine(refCtx, scalePoints[0], scalePoints[1], '#A8CF45');
+      pxPerInch = dist / 8.5;
+      document.getElementById('paperStatus').textContent = `✓ ${dist.toFixed(0)}px = 8.5" — scale ready.`;
+      document.getElementById('applyPaperBtn').disabled = false;
+      scaleMode = null; canvasArea.classList.remove('measuring');
+    }
+  } else if (scaleMode === 'verify') {
+    verifyPoints.push({ x, y });
+    if (verifyPoints.length === 1) {
+      document.getElementById('verifyStatus').textContent = 'Now click point 2.';
+    } else if (verifyPoints.length === 2) {
+      drawLine(refCtx, verifyPoints[0], verifyPoints[1], 'rgba(255,159,67,0.9)');
+      const dist = ptDist(verifyPoints[0], verifyPoints[1]);
+      document.getElementById('verifyStatus').textContent =
+        `${dist.toFixed(0)}px measured. Enter what you expect this to measure below.`;
+      document.getElementById('runVerifyBtn').disabled = false;
+      scaleMode = null; canvasArea.classList.remove('measuring');
+    }
+  }
+});
+
+// ===== POINT-TO-POINT MEASURE (isolated ptpCanvas) =====
+function startPtp() {
+  if (!wallImg)   { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first.'); return; }
+  clearPtp();
+  ptpActive = true;
+  canvasArea.classList.add('measuring');
+  document.getElementById('ptpStatus').textContent = 'Click point A on the photo.';
+}
+
+function handlePtpClick(x, y) {
+  if (x < 0 || x > canvasW || y < 0 || y > canvasH) return;
+  ptpPoints.push({ x, y });
+  ptpDots.push(placeDot(x, y, 'orange'));
+
+  if (ptpPoints.length === 1) {
+    document.getElementById('ptpStatus').textContent = 'Now click point B.';
+  } else if (ptpPoints.length === 2) {
+    ptpActive = false;
+    canvasArea.classList.remove('measuring');
+    const dist = ptDist(ptpPoints[0], ptpPoints[1]);
+    const inches = dist / pxPerInch;
+
+    // Draw ONLY on ptpCanvas — never touches refCanvas
+    ptpCtx.clearRect(0, 0, canvasW, canvasH);
+    ptpCtx.beginPath();
+    ptpCtx.moveTo(ptpPoints[0].x, ptpPoints[0].y);
+    ptpCtx.lineTo(ptpPoints[1].x, ptpPoints[1].y);
+    ptpCtx.strokeStyle = 'rgba(255,159,67,0.85)';
+    ptpCtx.lineWidth = 2;
+    ptpCtx.setLineDash([5, 3]);
+    ptpCtx.stroke();
+    ptpCtx.setLineDash([]);
+    // Tick marks
+    [ptpPoints[0], ptpPoints[1]].forEach(p => {
+      const ang = Math.atan2(ptpPoints[1].y - ptpPoints[0].y, ptpPoints[1].x - ptpPoints[0].x) + Math.PI / 2;
+      ptpCtx.beginPath();
+      ptpCtx.moveTo(p.x + Math.cos(ang) * 7, p.y + Math.sin(ang) * 7);
+      ptpCtx.lineTo(p.x - Math.cos(ang) * 7, p.y - Math.sin(ang) * 7);
+      ptpCtx.strokeStyle = 'rgba(255,159,67,0.85)';
+      ptpCtx.lineWidth = 2; ptpCtx.setLineDash([]);
+      ptpCtx.stroke();
+    });
+
+    const label = inches >= 12
+      ? `${(inches/12).toFixed(2)} ft  (${inches.toFixed(1)}")`
+      : `${inches.toFixed(1)}"`;
+    document.getElementById('ptpStatus').textContent = 'Measurement complete. Click anywhere to measure again.';
+    document.getElementById('ptpResult').textContent = label;
+    document.getElementById('clearPtpBtn').style.display = 'flex';
+    // Allow clicking canvas to immediately start another measurement
+    canvasArea.addEventListener('click', function ptpRestart(e) {
+      if (e.target.closest('.overlay-item') || e.target.closest('button')) return;
+      canvasArea.removeEventListener('click', ptpRestart);
+      clearPtp();
+      startPtp();
+    });
+  }
+}
+
+function clearPtp() {
+  ptpActive = false; ptpPoints = [];
+  canvasArea.classList.remove('measuring');
+  ptpCtx.clearRect(0, 0, canvasW, canvasH);  // clears ONLY ptpCanvas
+  ptpDots.forEach(d => d.remove()); ptpDots = [];
+  document.getElementById('ptpStatus').textContent  = 'Set scale first, then click Measure Distance.';
+  document.getElementById('ptpResult').textContent  = '';
+  document.getElementById('clearPtpBtn').style.display = 'none';
+}
+
+// ===== DRAWING HELPERS =====
+function drawLine(ctx2d, p1, p2, color) {
+  ctx2d.clearRect(0, 0, canvasW, canvasH);
+  ctx2d.beginPath(); ctx2d.moveTo(p1.x, p1.y); ctx2d.lineTo(p2.x, p2.y);
+  ctx2d.strokeStyle = color; ctx2d.lineWidth = 2;
+  ctx2d.setLineDash([6, 3]); ctx2d.stroke(); ctx2d.setLineDash([]);
+}
+
+function placeDot(x, y, color) {
+  const dot = document.createElement('div');
+  dot.className = `ref-dot ${color}`;
+  dot.dataset.cx = x; dot.dataset.cy = y;
+  positionDot(dot, x, y);
+  canvasArea.appendChild(dot);
+  return dot;
+}
+
+function positionDot(dot, x, y) {
+  const offL = parseFloat(wallCvs.style.left) || 0;
+  const offT = parseFloat(wallCvs.style.top)  || 0;
+  dot.style.left = (offL + panX + x * zoom) + 'px';
+  dot.style.top  = (offT + panY + y * zoom) + 'px';
+}
+
+function repositionDots() {
+  document.querySelectorAll('.ref-dot').forEach(dot => {
+    const x = parseFloat(dot.dataset.cx), y = parseFloat(dot.dataset.cy);
+    if (!isNaN(x) && !isNaN(y)) positionDot(dot, x, y);
+  });
+}
+
+function ptDist(a, b) { return Math.sqrt((b.x-a.x)**2 + (b.y-a.y)**2); }
+
+// ===== LOGO UPLOAD =====
+document.getElementById('logoInput').addEventListener('change', e => {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first — Step ② above.'); e.target.value=''; return; }
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => addImageOverlay(img, f.name.split('.')[0].substring(0, 20));
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+
+function addImageOverlay(img, label) {
+  const id = ++itemCounter;
+  const ratio = img.width / img.height;
+  const w = Math.min(canvasW * 0.35, img.width), h = w / ratio;
+  const item = { id, type:'logo', label, img, x:canvasW/2-w/2, y:canvasH/2-h/2, w, h, origW:img.width, origH:img.height };
+  overlayItems.push(item);
+  renderItem(item); selectItem(id); updateItemsList(); updateSizeResult(); updatePills(3); updateOrderBtn();
+  showToast('Logo added! Drag to position, resize from the gold corner.');
+}
+
+// ===== TEXT =====
+function toggleTextPanel() {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first — Step ② above.'); return; }
+  document.getElementById('textPanel').classList.toggle('visible');
+}
+
+function addTextOverlay() {
+  const text = document.getElementById('textContent').value.trim();
+  if (!text) { showToast('Enter some text first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first — Step ② above.'); return; }
+  const font = document.getElementById('textFont').value;
+  const color = document.getElementById('textColor').value;
+  const id = ++itemCounter;
+  const fontSize = Math.round(canvasH * 0.08);
+  // Measure actual text width so bounding box fits the text tightly
+  const measCtx = document.createElement('canvas').getContext('2d');
+  measCtx.font = `${fontSize}px ${font}`;
+  const textW = Math.ceil(measCtx.measureText(text).width) + 8;
+  const textH = Math.ceil(fontSize * 1.35);
+  const item = { id, type:'text', label:text.substring(0,20), text, font, color, fontSize,
+    x: canvasW*0.1, y: canvasH*0.45, w: textW, h: textH };
+  overlayItems.push(item);
+  renderItem(item); selectItem(id); updateItemsList(); updateSizeResult(); updatePills(3); updateOrderBtn();
+  document.getElementById('textPanel').classList.remove('visible');
+  document.getElementById('textContent').value = '';
+  showToast('Text added! Drag to position, resize from the gold corner.');
+}
+
+// ===== RENDER OVERLAY =====
+function renderItem(item) {
+  const prev = document.getElementById('oi-' + item.id); if (prev) prev.remove();
+  const el = document.createElement('div');
+  el.className = 'overlay-item' + (item.type === 'text' ? ' text-item' : ''); el.id = 'oi-' + item.id;
+  el.style.cssText = `left:${item.x}px;top:${item.y}px;width:${item.w}px;height:${item.h}px;`;
+  const inner = document.createElement('div'); inner.className = 'item-inner';
+
+  if (item.type === 'logo') {
+    const img = document.createElement('img');
+    img.src = item.img.src; img.style.cssText = 'width:100%;height:100%;object-fit:contain;'; img.draggable = false;
+    inner.appendChild(img);
+  } else {
+    const tc = document.createElement('canvas');
+    tc.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
+    drawTextCanvas(tc, item); item._canvas = tc; inner.appendChild(tc);
+  }
+
+  const resH = document.createElement('div'); resH.className = 'resize-handle';
+  const delH = document.createElement('div'); delH.className = 'delete-handle'; delH.innerHTML = '✕';
+  delH.onclick = ev => { ev.stopPropagation(); deleteItem(item.id); };
+  el.appendChild(inner); el.appendChild(resH); el.appendChild(delH);
+  makeDraggable(el, item, resH);
+  overlayEl.appendChild(el);
+}
+
+function drawTextCanvas(tc, item) {
+  tc.width = item.w*2; tc.height = item.h*2;
+  const c = tc.getContext('2d');
+  c.scale(2,2); c.clearRect(0,0,item.w,item.h);
+  c.font = `${item.fontSize}px ${item.font}`;
+  c.fillStyle = item.color; c.textBaseline = 'middle';
+  c.fillText(item.text, 0, item.h/2);
+}
+
+function makeDraggable(el, item, resH) {
+  let dragging=false, resizing=false, sx, sy, sex, sey, sw, sh;
+  el.addEventListener('mousedown', e => {
+    if (e.target===resH) return;
+    dragging=true; sx=e.clientX; sy=e.clientY; sex=item.x; sey=item.y;
+    selectItem(item.id); e.preventDefault();
+  });
+  resH.addEventListener('mousedown', e => {
+    resizing=true; sx=e.clientX; sy=e.clientY; sw=item.w; sh=item.h;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('mousemove', e => {
+    if (dragging) {
+      let nx = Math.max(0, Math.min(canvasW-item.w, sex+(e.clientX-sx)/zoom));
+      let ny = Math.max(0, Math.min(canvasH-item.h, sey+(e.clientY-sy)/zoom));
+      if (snapEnabled) { nx = Math.round(nx/SNAP_SIZE)*SNAP_SIZE; ny = Math.round(ny/SNAP_SIZE)*SNAP_SIZE; }
+      item.x = nx; item.y = ny;
+      el.style.left=item.x+'px'; el.style.top=item.y+'px'; updateSizeResult();
+    }
+    if (resizing) {
+      const dx=(e.clientX-sx)/zoom, dy=(e.clientY-sy)/zoom;
+      const constrain = e.shiftKey || e.ctrlKey;
+      if (item.type==='logo') {
+        if (constrain) {
+          // Proportional
+          item.w=Math.max(30,sw+dx); item.h=item.w*(item.origH/item.origW);
+        } else {
+          // Free resize
+          item.w=Math.max(30,sw+dx); item.h=Math.max(10,sh+dy);
+        }
+      } else {
+        // Text: free resize by default
+        item.w=Math.max(50,sw+dx); item.h=Math.max(16,sh+dy);
+        item.fontSize=Math.round(item.h*0.7);
+        if(item._canvas) drawTextCanvas(item._canvas,item);
+      }
+      el.style.width=item.w+'px'; el.style.height=item.h+'px'; updateSizeResult();
+    }
+  });
+  document.addEventListener('mouseup', () => { dragging=false; resizing=false; });
+  el.addEventListener('touchstart', e => {
+    if (e.target===resH) return;
+    dragging=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; sex=item.x; sey=item.y;
+    selectItem(item.id);
+  }, {passive:true});
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    item.x=Math.max(0,Math.min(canvasW-item.w, sex+(e.touches[0].clientX-sx)/zoom));
+    item.y=Math.max(0,Math.min(canvasH-item.h, sey+(e.touches[0].clientY-sy)/zoom));
+    el.style.left=item.x+'px'; el.style.top=item.y+'px'; updateSizeResult();
+  }, {passive:true});
+  document.addEventListener('touchend', () => { dragging=false; });
+}
+
+function selectItem(id) {
+  selectedItem = id;
+  document.querySelectorAll('.overlay-item').forEach(e => e.classList.remove('selected'));
+  document.querySelectorAll('.item-row').forEach(e => e.classList.remove('active'));
+  const el = document.getElementById('oi-'+id); if (el) el.classList.add('selected');
+  const row = document.getElementById('ir-'+id); if (row) row.classList.add('active');
+
+  // Show edit panel if text item selected
+  const item = overlayItems.find(i => i.id === id);
+  const editPanel = document.getElementById('editTextPanel');
+  if (item && item.type === 'text') {
+    document.getElementById('editTextContent').value = item.text;
+    document.getElementById('editTextFont').value = item.font;
+    document.getElementById('editTextColor').value = item.color;
+    editPanel.style.display = 'block';
+  } else {
+    editPanel.style.display = 'none';
+  }
+}
+
+function closeEditPanel() {
+  document.getElementById('editTextPanel').style.display = 'none';
+}
+
+function applyTextEdit() {
+  const item = overlayItems.find(i => i.id === selectedItem);
+  if (!item || item.type !== 'text') return;
+  item.text  = document.getElementById('editTextContent').value.trim() || item.text;
+  item.font  = document.getElementById('editTextFont').value;
+  item.color = document.getElementById('editTextColor').value;
+  item.label = item.text.substring(0,20);
+  if (item._canvas) drawTextCanvas(item._canvas, item);
+  updateItemsList();
+  updateSizeResult();
+  showToast('Text updated!');
+}
+
+function deleteItem(id) {
+  overlayItems = overlayItems.filter(i => i.id !== id);
+  const el = document.getElementById('oi-'+id); if (el) el.remove();
+  if (selectedItem === id) selectedItem = null;
+  updateItemsList(); updateSizeResult(); updateOrderBtn();
+}
+
+function getRealDims(item) {
+  if (item.type === 'logo') return { w:item.w, h:item.h };
+  const tc = document.createElement('canvas').getContext('2d');
+  tc.font = `${item.fontSize}px ${item.font}`;
+  return { w: tc.measureText(item.text).width, h: item.fontSize * 1.2 };
+}
+
+function updateItemsList() {
+  document.querySelectorAll('.item-row').forEach(r => r.remove());
+  const empty = document.getElementById('emptyItems');
+  if (!overlayItems.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  const list = document.getElementById('itemsList');
+  overlayItems.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'item-row'; row.id = 'ir-'+item.id;
+    const dims = pxPerInch ? getRealDims(item) : null;
+    const sz = dims ? `${+(dims.w/pxPerInch).toFixed(1)}" × ${+(dims.h/pxPerInch).toFixed(1)}"` : '';
+    const szTag = sz ? `<span style="font-size:10px;color:var(--brand);margin-left:4px;white-space:nowrap;">${sz}</span>` : '';
+    row.innerHTML = `<span>${item.type==='logo'?'🖼':'✏️'}</span><span style="flex:1">${item.label}</span>${szTag}`;
+    row.onclick = () => selectItem(item.id);
+    list.appendChild(row);
+  });
+}
+
+// ===== BOX MEASURE =====
+let savedMeasurements = [];
+
+function setBoxUnit(u) {
+  boxUnit = u;
+  document.getElementById('boxUnitIn').classList.toggle('active', u==='in');
+  document.getElementById('boxUnitCm').classList.toggle('active', u==='cm');
+  const res = document.getElementById('boxMeasureResult');
+  if (res._lastW && res._lastH) showBoxResult(res._lastW, res._lastH);
+  renderSavedMeasurements();
+}
+
+function startBoxMeasure() {
+  if (!wallImg)   { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first.'); return; }
+  document.getElementById('boxMeasureResult').textContent = '';
+  document.getElementById('boxMeasureResult')._lastW = 0;
+  document.getElementById('boxMeasureResult')._lastH = 0;
+  document.getElementById('clearBoxBtn').style.display = 'none';
+  document.getElementById('boxSaveRow').style.display = 'none';
+  document.getElementById('boxSelectRect').style.display = 'none';
+  // Freeze all overlay items so they don't intercept the drag
+  document.querySelectorAll('.overlay-item').forEach(el => {
+    el.classList.remove('selected');
+    el.style.pointerEvents = 'none';
+  });
+  document.querySelectorAll('.item-row').forEach(r => r.classList.remove('active'));
+  selectedItem = null;
+  document.getElementById('editTextPanel').style.display = 'none';
+  boxMeasureMode = true;
+  canvasArea.classList.add('measuring');
+  document.getElementById('boxMeasureStatus').textContent = 'Drag a rectangle anywhere on the photo.';
+  document.getElementById('boxMeasureBtn').classList.add('primary');
+}
+
+function clearBoxMeasure() {
+  boxMeasureMode = false; boxMeasureDrag = false; boxMeasureStart = null;
+  canvasArea.classList.remove('measuring');
+  document.querySelectorAll('.overlay-item').forEach(el => el.style.pointerEvents = '');
+  document.getElementById('boxSelectRect').style.display = 'none';
+  document.getElementById('boxMeasureResult').textContent = '';
+  document.getElementById('boxMeasureResult')._lastW = 0;
+  document.getElementById('boxMeasureResult')._lastH = 0;
+  document.getElementById('boxMeasureStatus').textContent = 'Set scale first, then draw a box.';
+  document.getElementById('clearBoxBtn').style.display = 'none';
+  document.getElementById('boxSaveRow').style.display = 'none';
+  document.getElementById('boxMeasureBtn').classList.remove('primary');
+}
+
+function showBoxResult(wPx, hPx) {
+  const res = document.getElementById('boxMeasureResult');
+  res._lastW = wPx; res._lastH = hPx;
+  if (boxUnit === 'in') {
+    res.textContent = `${(wPx/pxPerInch).toFixed(2)}" × ${(hPx/pxPerInch).toFixed(2)}"`;
+  } else {
+    res.textContent = `${(wPx/pxPerInch*2.54).toFixed(1)} × ${(hPx/pxPerInch*2.54).toFixed(1)} cm`;
+  }
+}
+
+function saveBoxMeasurement() {
+  const res = document.getElementById('boxMeasureResult');
+  if (!res._lastW) return;
+  const name = document.getElementById('boxMeasureName').value.trim() || `Measurement ${savedMeasurements.length+1}`;
+  savedMeasurements.push({
+    name,
+    wIn: (res._lastW/pxPerInch).toFixed(2),
+    hIn: (res._lastH/pxPerInch).toFixed(2),
+    wCm: (res._lastW/pxPerInch*2.54).toFixed(1),
+    hCm: (res._lastH/pxPerInch*2.54).toFixed(1),
+    id: Date.now()
+  });
+  document.getElementById('boxMeasureName').value = '';
+  renderSavedMeasurements();
+  showToast(`"${name}" saved!`);
+}
+
+function deleteSavedMeasurement(id) {
+  savedMeasurements = savedMeasurements.filter(m => m.id !== id);
+  renderSavedMeasurements();
+}
+
+function renderSavedMeasurements() {
+  const list = document.getElementById('savedMeasurementsList');
+  list.innerHTML = '';
+  if (!savedMeasurements.length) return;
+  savedMeasurements.forEach(m => {
+    const val = boxUnit === 'in' ? `${m.wIn}" × ${m.hIn}"` : `${m.wCm} × ${m.hCm} cm`;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
+        <div style="font-family:'Manrope',sans-serif; font-weight:800;font-size:15px;color:var(--brand);letter-spacing:1px;">${val}</div>
+      </div>
+      <button onclick="deleteSavedMeasurement(${m.id})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0;" title="Delete">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+// Box measure mouse handlers
+canvasArea.addEventListener('mousedown', e => {
+  if (!boxMeasureMode || !wallImg || zoomAreaMode) return;
+  boxMeasureDrag = true;
+  const r = canvasArea.getBoundingClientRect();
+  boxMeasureStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+  document.getElementById('boxSelectRect').style.cssText =
+    `display:block;left:${boxMeasureStart.x}px;top:${boxMeasureStart.y}px;width:0;height:0;`;
+  e.preventDefault(); e.stopPropagation();
+});
+
+canvasArea.addEventListener('mousemove', e => {
+  if (!boxMeasureDrag || !boxMeasureMode) return;
+  const r = canvasArea.getBoundingClientRect();
+  const cx = e.clientX - r.left, cy = e.clientY - r.top;
+  const x = Math.min(boxMeasureStart.x, cx), y = Math.min(boxMeasureStart.y, cy);
+  const w = Math.abs(cx - boxMeasureStart.x), h = Math.abs(cy - boxMeasureStart.y);
+  Object.assign(document.getElementById('boxSelectRect').style, { left:x+'px', top:y+'px', width:w+'px', height:h+'px' });
+});
+
+canvasArea.addEventListener('mouseup', e => {
+  if (!boxMeasureDrag || !boxMeasureMode) return;
+  boxMeasureDrag = false;
+  boxMeasureMode = false;
+  canvasArea.classList.remove('measuring');
+  document.querySelectorAll('.overlay-item').forEach(el => el.style.pointerEvents = '');
+  const r = canvasArea.getBoundingClientRect();
+  const ex = e.clientX - r.left, ey = e.clientY - r.top;
+  const wPx = Math.abs(ex - boxMeasureStart.x) / zoom;
+  const hPx = Math.abs(ey - boxMeasureStart.y) / zoom;
+  if (wPx > 5 && hPx > 5) {
+    showBoxResult(wPx, hPx);
+    document.getElementById('boxMeasureStatus').textContent = 'Done — name & save it, or click canvas to draw another box.';
+    document.getElementById('clearBoxBtn').style.display = 'flex';
+    document.getElementById('boxSaveRow').style.display = 'flex';
+    document.getElementById('boxMeasureBtn').classList.remove('primary');
+    // Allow clicking canvas to immediately start another box measurement
+    canvasArea.addEventListener('mousedown', function boxRestart(e) {
+      if (e.target.closest('.overlay-item') || e.target.closest('button') ||
+          e.target.closest('#savedMeasurementsList') || zoomAreaMode) return;
+      canvasArea.removeEventListener('mousedown', boxRestart);
+      clearBoxMeasure();
+      startBoxMeasure();
+    }, { once: false });
+  } else {
+    clearBoxMeasure();
+  }
+});
+
+// ===== PRODUCT =====
+const PRODUCT_NOTES = {
+  letters: 'Raised 3D letters and logos — aluminum, acrylic, or foam. Fabricated to exact dimensions. Pricing depends on material and letter count.',
+  vinyl:   'Precision-cut vinyl applied directly to the wall surface. Available in hundreds of colours. Any custom size.',
+  mural:   'Large-format printed wall mural — direct print or adhesive vinyl. Coordinate exact dimensions with our team for a seamless install.',
+  element: 'Panels, plaques, projecting signs, and other architectural sign components. Custom sizing to suit your space.'
+};
+const PRODUCT_NAMES = {
+  letters: 'Dimensional Letters / Logo',
+  vinyl:   'Cut Vinyl Graphics',
+  mural:   'Wall Mural',
+  element: 'Sign Element'
+};
+
+function selectProduct(btn) {
+  document.querySelectorAll('.product-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedProduct = btn.dataset.type;
+  updateSizeResult();
+}
+
+// ===== SIZE RESULT =====
+function updateSizeResult() {
+  const result = document.getElementById('sizeResult');
+  const hint   = document.getElementById('sizeHint');
+  if (!wallImg) {
+    result.classList.remove('visible'); hint.style.display='block';
+    hint.textContent='Upload a wall photo to get started.'; return;
+  }
+  if (!pxPerInch) {
+    result.classList.remove('visible'); hint.style.display='block';
+    hint.textContent='⚠ Set your scale in Step ② before adding design elements.'; return;
+  }
+  if (!overlayItems.length) {
+    result.classList.remove('visible'); hint.style.display='block';
+    hint.textContent='Add a design element to see its size.'; return;
+  }
+  const lines = overlayItems.map(item => {
+    const d = getRealDims(item);
+    const rW = Math.round((d.w/pxPerInch)*2)/2, rH = Math.round((d.h/pxPerInch)*2)/2;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;">
+      <span style="color:var(--muted)">${item.type==='logo'?'🖼':'✏️'} ${item.label}</span>
+      <span style="color:var(--brand2);font-family:'Manrope',sans-serif; font-weight:800;font-size:15px;letter-spacing:1px;">${rW}" × ${rH}"</span></div>`;
+  }).join('');
+  const headline = overlayItems.find(i => i.id===selectedItem) || overlayItems[overlayItems.length-1];
+  const hd = getRealDims(headline);
+  const hW = Math.round((hd.w/pxPerInch)*2)/2, hH = Math.round((hd.h/pxPerInch)*2)/2;
+  document.getElementById('sizeNumber').textContent = `${hW}" × ${hH}"`;
+  document.getElementById('sizeLabel').textContent  = `${PRODUCT_NAMES[selectedProduct]} — ${overlayItems.length>1?'selected element':'recommended size'}`;
+  document.getElementById('sizeNote').innerHTML = (overlayItems.length>1?`<div style="margin-bottom:8px;">${lines}</div>`:'') + PRODUCT_NOTES[selectedProduct];
+  result.classList.add('visible'); hint.style.display='none';
+  updateOrderBtn();
+}
+
+// ===== PILLS =====
+function updatePills(step) {
+  for (let i=1;i<=4;i++) {
+    const p = document.getElementById('pill'+i);
+    p.classList.remove('active','done');
+    if (i<step) p.classList.add('done');
+    if (i===step) p.classList.add('active');
+  }
+}
+
+// ===== ORDER =====
+function updateOrderBtn() {
+  // Quote button is always visible; no separate disabled state needed
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// Deselect on background click
+canvasArea.addEventListener('mousedown', e => {
+  if (!scaleMode && !ptpActive && !zoomAreaMode && !boxMeasureMode &&
+      (e.target===wallCvs||e.target===canvasArea||e.target===overlayEl||e.target===refCvs||e.target===ptpCvs)) {
+    document.querySelectorAll('.overlay-item').forEach(el=>el.classList.remove('selected'));
+    document.querySelectorAll('.item-row').forEach(r=>r.classList.remove('active'));
+    selectedItem=null;
+    document.getElementById('editTextPanel').style.display = 'none';
+    // Start pan if zoomed in
+    if (zoom > 1.0 && wallImg) {
+      isPanning = true;
+      panStartX = e.clientX; panStartY = e.clientY;
+      panStartOffX = panX; panStartOffY = panY;
+      canvasArea.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+  }
+});
+
+canvasArea.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX = panStartOffX + (e.clientX - panStartX);
+  panY = panStartOffY + (e.clientY - panStartY);
+  applyZoom();
+});
+
+document.addEventListener('mouseup', e => {
+  if (isPanning) {
+    isPanning = false;
+    canvasArea.style.cursor = '';
+  }
+});
+
+// ===== RESIZE =====
+window.addEventListener('resize', () => {
+  if (!wallImg) return;
+  resizeCanvases(); drawWall();
+  overlayItems.forEach(item => {
+    const el = document.getElementById('oi-'+item.id);
+    if (el) { el.style.left=item.x+'px'; el.style.top=item.y+'px'; }
+  });
+});
+
+// ===== SNAP TO GRID =====
+function toggleSnap() {
+  snapEnabled = !snapEnabled;
+  const btn = document.getElementById('snapBtn');
+  const ind = document.getElementById('snapIndicator');
+  btn.style.background = snapEnabled ? 'rgba(168,207,69,0.2)' : '';
+  btn.style.borderColor = snapEnabled ? 'var(--green)' : '';
+  btn.style.color = snapEnabled ? 'var(--green)' : '';
+  ind.style.display = snapEnabled ? 'block' : 'none';
+  showToast(snapEnabled ? 'Snap to grid ON (press S to toggle)' : 'Snap to grid OFF');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 's' && !e.ctrlKey && !e.metaKey &&
+      document.activeElement.tagName !== 'INPUT' &&
+      document.activeElement.tagName !== 'TEXTAREA') {
+    toggleSnap();
+  }
+});
+
+// ===== PDF EXPORT =====
+function exportPDF() {
+  if (!wallImg) { showToast('Upload a wall photo first.'); return; }
+  if (!pxPerInch) { showToast('Set your scale first before exporting — Step ② above.'); return; }
+  showToast('Generating PDF…');
+  // Composite everything onto one canvas
+  const W = canvasW, H = canvasH;
+  const out = document.createElement('canvas');
+  // Add space below for measurements summary
+  const hasMeasurements = savedMeasurements.length > 0;
+  const summaryH = hasMeasurements ? Math.min(savedMeasurements.length * 32 + 80, 300) : 0;
+  const pdfH = H + summaryH + 120; // extra for header + footer
+  out.width = W; out.height = pdfH;
+  const ctx = out.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0A0A0A';
+  ctx.fillRect(0, 0, W, pdfH);
+
+  // Header bar
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, 44);
+  ctx.fillStyle = '#E85D2F';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('ViewMark — Wall Visualizer', 16, 29);
+  ctx.fillStyle = '#A6A6A6';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(new Date().toLocaleDateString('en-CA', { year:'numeric', month:'long', day:'numeric' }), W - 150, 29);
+
+  // Wall image
+  ctx.drawImage(wallCvs, 0, 44, W, H);
+
+  // Overlay items
+  overlayItems.forEach(item => {
+    if (item.type === 'logo' && item.img) {
+      ctx.drawImage(item.img, item.x, 44 + item.y, item.w, item.h);
+    } else if (item.type === 'text' && item._canvas) {
+      ctx.drawImage(item._canvas, item.x, 44 + item.y, item.w, item.h);
+    }
+  });
+
+  // Scale badge line
+  const scaleY = 44 + H + 14;
+  if (pxPerInch) {
+    ctx.fillStyle = 'rgba(168,207,69,0.15)';
+    ctx.strokeStyle = 'rgba(168,207,69,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(12, scaleY - 12, 300, 22, 4); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#A8CF45';
+    ctx.font = '10px monospace';
+    ctx.fillText(`Scale: 1" = ${pxPerInch.toFixed(1)}px`, 20, scaleY + 4);
+  }
+
+  // Overlay item sizes
+  let sizeY = scaleY + 34;
+  if (overlayItems.length && pxPerInch) {
+    ctx.fillStyle = '#BC7350';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('Design Element Sizes', 12, sizeY);
+    sizeY += 18;
+    overlayItems.forEach(item => {
+      const d = getRealDims(item);
+      const wIn = (d.w/pxPerInch).toFixed(2), hIn = (d.h/pxPerInch).toFixed(2);
+      ctx.fillStyle = '#A6A6A6';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`${item.type==='logo'?'🖼':'✏'} ${item.label}`, 16, sizeY);
+      ctx.fillStyle = '#A86343';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(`${wIn}" × ${hIn}"`, 220, sizeY);
+      sizeY += 20;
+    });
+  }
+
+  // Saved measurements
+  if (hasMeasurements) {
+    sizeY += 8;
+    ctx.fillStyle = '#BC7350';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('Saved Measurements', 12, sizeY);
+    sizeY += 18;
+    savedMeasurements.forEach(m => {
+      ctx.fillStyle = '#A6A6A6';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(m.name, 16, sizeY);
+      ctx.fillStyle = '#A86343';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(`${m.wIn}" × ${m.hIn}"`, 220, sizeY);
+      sizeY += 20;
+    });
+  }
+
+  // Disclaimer footer
+  ctx.fillStyle = 'rgba(166,166,166,0.7)';
+  ctx.font = '9px sans-serif';
+  ctx.fillText('Measurements are estimations only. Always verify with physical measurements before production.', 12, pdfH - 10);
+
+  // Export as PDF via print (creates a printable image page)
+  const img = out.toDataURL('image/png');
+  const win = window.open('', '_blank');
+  if (!win) { showToast('Allow popups to export PDF'); return; }
+  win.document.write(`<!DOCTYPE html><html><head><title>ViewMark Export</title>
+    <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#0A0A0A;}
+    img{width:100%;height:auto;display:block;}
+    @media print{body{margin:0;}img{max-width:100%;page-break-inside:avoid;}}
+    </style></head><body>
+    <img src="${img}">
+    <script>window.onload=()=>{window.print();}<\/script>
+    </body></html>`);
+  win.document.close();
+  showToast('PDF ready — use your browser print dialog to save.');
+}
+
+// ===== SAVE / LOAD SESSION =====
+function saveSession() {
+  if (!wallImg) { showToast('Nothing to save yet — upload a wall photo first.'); return; }
+  const wallDataUrl = wallCvs.toDataURL('image/jpeg', 0.85);
+  const session = {
+    version: 2,
+    savedAt: new Date().toISOString(),
+    wallDataUrl,
+    pxPerInch,
+    canvasW, canvasH,
+    overlayItems: overlayItems.map(item => {
+      const base = { id:item.id, type:item.type, label:item.label, x:item.x, y:item.y, w:item.w, h:item.h };
+      if (item.type === 'text') {
+        return { ...base, text:item.text, font:item.font, color:item.color, fontSize:item.fontSize };
+      } else {
+        return { ...base, imgSrc: item.img.src, origW:item.origW, origH:item.origH };
+      }
+    }),
+    savedMeasurements,
+    selectedProduct,
+    snapEnabled
+  };
+  const blob = new Blob([JSON.stringify(session)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `viewmark-session-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Session saved!');
+}
+
+function loadSession(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const session = JSON.parse(e.target.result);
+      if (!session.wallDataUrl) throw new Error('Invalid session file');
+
+      // Load wall image
+      const img = new Image();
+      img.onload = () => {
+        wallImg = img; zoom = 1.0; panX = 0; panY = 0;
+        resizeCanvases(); drawWall();
+        [wallCvs, refCvs, ptpCvs].forEach(c => c.style.display = 'block');
+        overlayEl.style.display = 'block';
+        document.getElementById('canvasHint').style.display = 'none';
+        document.getElementById('zoomControls').style.display = 'flex';
+
+        // Restore state
+        pxPerInch = session.pxPerInch || null;
+        selectedProduct = session.selectedProduct || 'letters';
+        savedMeasurements = session.savedMeasurements || [];
+        overlayItems = [];
+        document.getElementById('overlayContainer').innerHTML = '';
+        itemCounter = 0;
+
+        if (pxPerInch) showScaleBadge(`1" = ${pxPerInch.toFixed(1)}px  (restored)`);
+
+        // Restore snap
+        if (session.snapEnabled && !snapEnabled) toggleSnap();
+
+        // Restore overlay items
+        const itemsToLoad = session.overlayItems || [];
+        let loaded = 0;
+        if (!itemsToLoad.length) { finishLoad(); return; }
+
+        itemsToLoad.forEach(saved => {
+          itemCounter = Math.max(itemCounter, saved.id);
+          if (saved.type === 'text') {
+            const item = { ...saved };
+            overlayItems.push(item);
+            renderItem(item);
+            loaded++;
+            if (loaded === itemsToLoad.length) finishLoad();
+          } else {
+            const im = new Image();
+            im.onload = () => {
+              const item = { ...saved, img: im };
+              overlayItems.push(item);
+              renderItem(item);
+              loaded++;
+              if (loaded === itemsToLoad.length) finishLoad();
+            };
+            im.src = saved.imgSrc;
+          }
+        });
+      };
+      img.src = session.wallDataUrl;
+
+      function finishLoad() {
+        renderSavedMeasurements();
+        updateItemsList();
+        updateSizeResult();
+        updatePills(overlayItems.length ? 3 : pxPerInch ? 2 : 1);
+        updateScaleWarning();
+        showToast('Session loaded!');
+      }
+    } catch(err) {
+      showToast('Could not load session — invalid file.');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ===== SETTINGS MODAL =====
+function showSettings() {
+  if (clientConfig) {
+    document.getElementById('settingsCompany').value = clientConfig.companyName || '';
+    document.getElementById('settingsContactUrl').value = clientConfig.contactUrl || '';
+    const color = clientConfig.brandColor || '#BC7350';
+    document.getElementById('settingsBrandColor').value = color;
+    document.getElementById('settingsColorHex').textContent = color;
+    if (clientConfig.logoBase64 && clientConfig.logoBase64.length > 100) {
+      document.getElementById('settingsLogoPreview').src = clientConfig.logoBase64;
+      document.getElementById('settingsLogoPreview').style.display = 'block';
+      document.getElementById('settingsLogoPrompt').style.display = 'none';
+    }
+  }
+  document.getElementById('settingsOverlay').classList.add('visible');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('visible');
+}
+
+document.getElementById('settingsBrandColor').addEventListener('input', function() {
+  document.getElementById('settingsColorHex').textContent = this.value;
+});
+
+document.getElementById('settingsLogoFile').addEventListener('change', function() {
+  const file = this.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('settingsLogoPreview').src = ev.target.result;
+    document.getElementById('settingsLogoPreview').style.display = 'block';
+    document.getElementById('settingsLogoPrompt').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+async function saveSettings() {
+  const companyName = document.getElementById('settingsCompany').value.trim();
+  const contactUrl  = document.getElementById('settingsContactUrl').value.trim();
+  const brandColor  = document.getElementById('settingsBrandColor').value;
+  let logoBase64 = clientConfig?.logoBase64 || '';
+
+  const newLogoFile = document.getElementById('settingsLogoFile').files[0];
+  if (newLogoFile) {
+    logoBase64 = await new Promise(res => {
+      const r = new FileReader();
+      r.onload = ev => res(ev.target.result);
+      r.readAsDataURL(newLogoFile);
+    });
+  }
+
+  const updatedConfig = { ...clientConfig, companyName, contactUrl, brandColor, logoBase64 };
+
+  try {
+    const{data:{session}}=await vmSupabase.auth.getSession();
+    if(!session)throw new Error('Not authenticated');
+    const{error}=await vmSupabase.from('viewmark_configs').upsert({user_id:session.user.id,config:updatedConfig},{onConflict:'user_id'});
+    if(error)throw error;
+    clientConfig=updatedConfig;
+    applyBranding(clientConfig);
+    closeSettings();
+    showToast('Branding updated!');
+  } catch(err) {
+    console.error(err);
+    showToast('Could not save — check your connection.');
+  }
+}
+
+</script>
+</body>
+</html>
