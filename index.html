@@ -1,23 +1,22 @@
-<!-- © 2025 ViewMark by OfficeMark. All rights reserved. Unauthorized reproduction is prohibited. -->
+<!-- © 2025 OfficeMark. All rights reserved. Unauthorized reproduction is prohibited. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ViewMark — Wall Visualizer</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Visualizer</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@400;600&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&family=Raleway:wght@400;700&family=Anton&family=Roboto+Condensed:wght@400;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;700&family=Nunito:wght@400;700&family=Merriweather:wght@400;700&family=Archivo+Black&family=Fjalla+One&family=Black+Han+Sans&family=Permanent+Marker&family=Teko:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  /* ViewMark brand palette */
-  --logo: #E85D2F;        /* Signal orange — wordmark + alerts only */
-  --brand: #BC7350;       /* Muted burnt-orange — UI accent */
-  --brand2: #A86343;      /* Muted burnt-orange hover */
-  --navy: #0A0A0A;        /* Ink (page bg) */
-  --navy2: #1A1A1A;       /* Steel (panels) */
-  --steel: #1A1A1A;       /* Steel (consolidated) */
+  --logo: #E85D2F;
+  --brand: #BC7350;
+  --brand2: #A86343;
+  --navy: #0A0A0A;
+  --navy2: #1A1A1A;
+  --steel: #1A1A1A;
   --grey: #848688;
-  --offwhite: #FFFFFF;    /* Paper */
+  --offwhite: #FFFFFF;
   --muted: rgba(255, 255, 255, 0.65);
   --green: #A8CF45;
   --danger: #e05555;
@@ -26,18 +25,6 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(--offwhite); min-height: 100vh; overflow: hidden; }
-
-/* TRIAL BANNER */
-.trial-banner {
-  background: rgba(188,115,80,0.12);
-  border-bottom: 1px solid rgba(188,115,80,0.2);
-  padding: 8px 24px;
-  display: flex; align-items: center; gap: 12px;
-  font-size: 12px; color: var(--brand);
-}
-.trial-banner strong { color: var(--offwhite); }
-.trial-banner-space { flex: 1; }
-.trial-banner a { color: var(--brand); font-size: 11px; text-decoration: underline; cursor: pointer; }
 
 /* HEADER */
 .header {
@@ -86,36 +73,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
   padding: 3px 8px; pointer-events: none; display: none; z-index: 50;
 }
 
-/* SETTINGS MODAL */
-.settings-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
-.settings-overlay.visible { display:flex; }
-.settings-box {
-  background:var(--navy2); border:1px solid rgba(188,115,80,0.25); border-radius:14px;
-  max-width:480px; width:100%; max-height:85vh; overflow-y:auto; padding:26px 28px;
-}
-.settings-box::-webkit-scrollbar { width:3px; }
-.settings-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
-.settings-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:20px; letter-spacing:3px; color:var(--brand); margin-bottom:4px; }
-.settings-sub { font-size:12px; color:var(--muted); margin-bottom:22px; }
-.settings-field { margin-bottom:18px; }
-.settings-field label { display:block; font-family:'Manrope',sans-serif; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
-.settings-field input[type=text], .settings-field input[type=url] {
-  width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-  border-radius:7px; padding:10px 12px; color:var(--offwhite);
-  font-family:'Manrope',sans-serif; font-size:13px; outline:none; transition:border 0.2s;
-}
-.settings-field input:focus { border-color:var(--brand); }
-.settings-logo-upload { background:rgba(255,255,255,0.04); border:1px dashed rgba(188,115,80,0.3); border-radius:8px; padding:16px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
-.settings-logo-upload:hover { border-color:var(--brand); }
-.settings-logo-upload input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
-.settings-logo-upload p { font-size:12px; color:var(--muted); }
-.settings-color-row { display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; padding:8px 12px; }
-.settings-color-row input[type=color] { width:36px; height:36px; border:none; border-radius:6px; padding:2px; background:transparent; cursor:pointer; }
-.settings-color-row span { font-size:13px; color:var(--muted); font-family:'Manrope',sans-serif; }
-.settings-save-btn { width:100%; padding:13px; background:var(--brand); color:var(--navy); font-family:'Manrope',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; border:none; border-radius:8px; cursor:pointer; transition:all 0.2s; margin-top:6px; }
-.settings-save-btn:hover { background:var(--brand2); }
-.settings-close-btn { position:absolute; top:20px; right:20px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1; }
-
 /* HEADER ICON BUTTONS */
 .icon-btn {
   background: rgba(188,115,80,0.10); border: 1px solid rgba(188,115,80,0.25);
@@ -135,7 +92,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 }
 .canvas-hint p { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
-/* Scale-not-set warning banner — sits at top of canvas, only when wall is loaded but scale is not set */
 .scale-warning {
   position: absolute;
   top: 18px;
@@ -157,7 +113,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 }
 .scale-warning.visible { display: block; }
 
-/* Canvas layers — all stacked at same offset */
 #wallCanvas { position: absolute; display: none; transform-origin: top left; }
 #refCanvas  { position: absolute; top:0; left:0; pointer-events:none; display:none; transform-origin: top left; }
 #ptpCanvas  { position: absolute; top:0; left:0; pointer-events:none; display:none; transform-origin: top left; }
@@ -165,10 +120,8 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 
 .canvas-area.measuring { cursor: crosshair; }
 
-/* Overlay items */
 .overlay-item { position: absolute; pointer-events: all; cursor: move; user-select: none; }
 .overlay-item.selected .item-inner { outline: 2px solid var(--brand); outline-offset: 2px; }
-/* item-inner passes through pointer events to avoid blocking edge access for box measure */
 .item-inner { position: relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; }
 .resize-handle {
   position:absolute; bottom:-7px; right:-7px; width:14px; height:14px;
@@ -191,7 +144,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .overlay-item.selected .delete-handle { display:flex; }
 .overlay-item.selected.text-item .edit-handle { display:flex; }
 
-/* Box measure */
 .box-measure-box { background:rgba(188,115,80,0.06); border:1px solid rgba(188,115,80,0.22); border-radius:8px; padding:12px; }
 .box-measure-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
 .box-unit-tabs { display:flex; border-radius:6px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); margin-bottom:10px; width:fit-content; }
@@ -201,7 +153,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .box-measure-status { font-size:11px; color:var(--muted); margin-top:4px; min-height:16px; }
 #boxSelectRect { position:absolute; border:2px dashed rgba(188,115,80,0.9); background:rgba(188,115,80,0.06); pointer-events:none; display:none; z-index:55; }
 
-/* Dots for calibration (green) and p-t-p (orange) */
 .ref-dot {
   position:absolute; width:12px; height:12px; border-radius:50%;
   border:2px solid white; transform:translate(-50%,-50%); pointer-events:none; z-index:30;
@@ -209,13 +160,11 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .ref-dot.green  { background: var(--green); }
 .ref-dot.orange { background: var(--measure); }
 
-/* Zoom area selection box */
 #zoomSelectBox {
   position: absolute; border: 2px dashed rgba(255,159,67,0.8);
   background: rgba(255,159,67,0.08); pointer-events: none; display: none; z-index: 60;
 }
 
-/* ZOOM CONTROLS */
 .zoom-controls {
   position: absolute; bottom: 16px; right: 16px;
   display: flex; flex-direction: column; gap: 4px; z-index: 50;
@@ -235,7 +184,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
   backdrop-filter: blur(4px); letter-spacing: 0.05em;
 }
 
-/* SIDEBAR */
 .sidebar { background: var(--navy2); border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; overflow-y:auto; }
 .section { padding:18px 22px; border-bottom:1px solid rgba(255,255,255,0.06); }
 .section-title { font-family:'Manrope',sans-serif; font-weight:800; font-size:15px; letter-spacing:2px; color:var(--brand); margin-bottom:12px; }
@@ -277,7 +225,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .ref-size-row input { flex:1; }
 .ref-size-row span { font-size:11px; color:var(--muted); white-space:nowrap; }
 
-/* Point-to-point box */
 .ptp-box { background:rgba(255,159,67,0.06); border:1px solid rgba(255,159,67,0.22); border-radius:8px; padding:12px; }
 .ptp-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
 .ptp-status { font-size:11px; color:var(--measure); margin-top:8px; min-height:16px; }
@@ -371,7 +318,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
   z-index:999;
 }
-.loading-screen img { height:48px; opacity:0.8; }
 .loading-screen p { font-size:11px; letter-spacing:0.15em; color:var(--muted); }
 
 /* HOW IT WORKS MODAL */
@@ -415,48 +361,31 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 
 <!-- LOADING SCREEN -->
 <div class="loading-screen" id="loadingScreen">
-  <img src="/viewmark-logo.png" alt="ViewMark">
-  <p>Loading your visualizer...</p>
-</div>
-
-<!-- TRIAL BANNER -->
-<div class="trial-banner" id="trialBanner" style="display:none;">
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#BC7350" stroke-width="1.2"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="#BC7350" stroke-width="1.3" stroke-linecap="round"/><circle cx="7" cy="9.5" r="0.7" fill="#BC7350"/></svg>
-  <span>Free trial — <strong id="trialDaysText"></strong> remaining.</span>
-  <div class="trial-banner-space"></div>
-  <a href="/cdn-cgi/l/email-protection#6b190a050f122b040d0d02080e060a190045080a54181e09010e081f563d020e1c260a19004b381e09180819021b1f020405">Upgrade to keep access →</a>
+  <p>Loading...</p>
 </div>
 
 <!-- HEADER -->
 <div class="header">
   <div class="client-logo-wrap" id="clientLogoWrap"></div>
   <div class="header-divider-line"></div>
-  <div class="header-tool-name">Wall Visualizer</div>
+  <div class="header-tool-name">Visualizer</div>
   <div class="header-space"></div>
   <button class="how-to-btn" onclick="showModal()">
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 5C5 4.17 5.67 3.5 6.5 3.5S8 4.17 8 5c0 .83-.83 1.5-1.5 1.5V7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="6.5" cy="9.5" r="0.6" fill="currentColor"/></svg>
     How To Use
   </button>
-  <!-- PDF Export -->
   <button class="icon-btn" onclick="exportPDF()" title="Save PDF">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="1" width="8" height="11" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 1v3h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 7h6M4 9.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
   </button>
-  <!-- Save Session -->
   <button class="icon-btn" onclick="saveSession()" title="Save session">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="4" y="1.5" width="6" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/><rect x="3" y="7.5" width="8" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg>
   </button>
-  <!-- Load Session -->
   <button class="icon-btn" onclick="document.getElementById('loadSessionInput').click()" title="Load session">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7V11.5a1 1 0 001 1h8a1 1 0 001-1V7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M7 1.5V9M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
   <input type="file" id="loadSessionInput" accept=".json" style="display:none" onchange="loadSession(event)">
-  <!-- Snap to Grid toggle -->
   <button class="icon-btn" id="snapBtn" onclick="toggleSnap()" title="Toggle snap to grid (S)">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="2.5" cy="2.5" r="1" fill="currentColor"/><circle cx="7" cy="2.5" r="1" fill="currentColor"/><circle cx="11.5" cy="2.5" r="1" fill="currentColor"/><circle cx="2.5" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="11.5" cy="7" r="1" fill="currentColor"/><circle cx="2.5" cy="11.5" r="1" fill="currentColor"/><circle cx="7" cy="11.5" r="1" fill="currentColor"/><circle cx="11.5" cy="11.5" r="1" fill="currentColor"/></svg>
-  </button>
-  <!-- Settings -->
-  <button class="icon-btn" onclick="showSettings()" title="Branding settings">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.636 2.636l1.06 1.06M10.304 10.304l1.06 1.06M11.364 2.636l-1.06 1.06M3.696 10.304l-1.06 1.06" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
   </button>
   <div class="step-pills">
     <div class="step-pill active" id="pill1">① Upload Wall</div>
@@ -465,12 +394,10 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
     <div class="step-pill" id="pill4">④ Results</div>
   </div>
   <button class="sign-out-btn" onclick="newSession()" title="Clear everything and start fresh" style="margin-right:4px;">↺ New</button>
-  <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="main">
 
-  <!-- CANVAS -->
   <div class="canvas-area" id="canvasArea">
     <div class="scale-warning" id="scaleWarning">⚠ Set your scale first — Step ② in the sidebar</div>
     <div class="canvas-hint" id="canvasHint">
@@ -489,7 +416,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
     <div id="zoomSelectBox"></div>
     <div id="boxSelectRect"></div>
 
-    <!-- ZOOM CONTROLS -->
     <div class="zoom-controls" id="zoomControls" style="display:none;">
       <button class="zoom-btn" onclick="adjustZoom(0.25)" title="Zoom in">+</button>
       <div class="zoom-label" id="zoomLabel">100%</div>
@@ -500,10 +426,8 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
     <div class="snap-grid-indicator" id="snapIndicator">SNAP ON</div>
   </div>
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
 
-    <!-- STEP 1 -->
     <div class="section">
       <div class="section-title">① Wall Photo</div>
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('wallInput').click()">
@@ -516,7 +440,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
       <input type="file" id="wallInput" accept="image/*">
     </div>
 
-    <!-- STEP 2 -->
     <div class="section">
       <div class="section-title">② Set Scale</div>
       <div class="method-tabs">
@@ -573,7 +496,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
       </div>
     </div>
 
-    <!-- STEP 3 -->
     <div class="section">
       <div class="section-title">③ Add Design</div>
       <div class="add-btns">
@@ -619,7 +541,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
           <button class="add-btn" style="flex:1;padding:8px;font-size:11px;" onclick="addTextOverlay()">Add to Wall →</button>
         </div>
       </div>
-      <!-- EDIT TEXT PANEL (shown when a text item is selected) -->
       <div class="text-panel" id="editTextPanel" style="display:none;border-color:rgba(188,115,80,0.3);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <span style="font-size:10px;color:var(--brand);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Edit Selected Text</span>
@@ -661,7 +582,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
       </div>
     </div>
 
-    <!-- BOX MEASURE -->
     <div class="section">
       <div class="section-title" style="color:var(--brand);">⬚ Box Measure</div>
       <div class="box-measure-box">
@@ -699,7 +619,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
       </div>
     </div>
 
-    <!-- STEP 4 -->
     <div class="section">
       <div class="section-title">④ Product & Size</div>
       <div class="product-tabs">
@@ -716,7 +635,6 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
       <p class="hint-text" id="sizeHint">Set scale and add a design element to calculate size.</p>
     </div>
 
-    <!-- DISCLAIMER + QUOTE -->
     <div class="section">
       <div class="disclaimer-box">
         <div class="disclaimer-title">
@@ -732,47 +650,14 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 
 <div class="toast" id="toast"></div>
 
-<!-- SETTINGS MODAL -->
-<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
-  <div class="settings-box" style="position:relative;">
-    <button class="settings-close-btn" onclick="closeSettings()">✕</button>
-    <div class="settings-title">Branding Settings</div>
-    <p class="settings-sub">Update your logo, brand colour, and contact link. Changes save immediately.</p>
-    <div class="settings-field">
-      <label>Company Name</label>
-      <input type="text" id="settingsCompany" placeholder="Acme Signs Co.">
-    </div>
-    <div class="settings-field">
-      <label>Company Logo</label>
-      <div class="settings-logo-upload" id="settingsLogoZone">
-        <input type="file" id="settingsLogoFile" accept="image/png,image/svg+xml,image/jpeg,image/webp">
-        <img id="settingsLogoPreview" style="max-height:44px;max-width:180px;margin:0 auto 8px;display:none;" alt="Logo">
-        <p id="settingsLogoPrompt"><strong>Click to upload</strong> new logo<br>PNG, SVG or JPG</p>
-      </div>
-    </div>
-    <div class="settings-field">
-      <label>Brand Colour</label>
-      <div class="settings-color-row">
-        <input type="color" id="settingsBrandColor" value="#BC7350">
-        <span id="settingsColorHex">#BC7350</span>
-      </div>
-    </div>
-    <div class="settings-field">
-      <label>Contact / Quote URL</label>
-      <input type="url" id="settingsContactUrl" placeholder="https://yoursignshop.com/contact">
-    </div>
-    <button class="settings-save-btn" onclick="saveSettings()">Save Branding</button>
-  </div>
-</div>
-
 <!-- HOW IT WORKS MODAL -->
 <div class="modal-overlay" id="howToModal" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
-    <div class="modal-title">How to Use ViewMark</div>
+    <div class="modal-title">How to Use the Visualizer</div>
     <div class="modal-sub">See your sign, logo, or graphic exactly how it will look — before you order.</div>
 
     <div class="modal-tip" style="margin-bottom:16px;border-color:rgba(188,115,80,0.3);">
-      <p><strong style="color:var(--brand);">What ViewMark is for:</strong> Interior office walls, reception areas, storefronts, retail spaces, and vehicle graphics. It can be used for any application where you need to visualise elements in a photo to scale — helpful for presentations or building an estimate based on available information. <strong style="color:var(--offwhite);">It is not intended for large building exteriors or architectural signage.</strong></p>
+      <p><strong style="color:var(--brand);">What this tool is for:</strong> Interior office walls, reception areas, storefronts, retail spaces, and vehicle graphics. It can be used for any application where you need to visualise elements in a photo to scale — helpful for presentations or building an estimate based on available information. <strong style="color:var(--offwhite);">It is not intended for large building exteriors or architectural signage.</strong></p>
     </div>
 
     <div class="modal-step">
@@ -828,148 +713,16 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
     <button class="modal-close" onclick="closeModal()">GOT IT — LET'S GO</button>
   </div>
 </div>
-  
-  <script>
-const SUPABASE_URL='https://xjmmfqjwyqbqhchehowy.supabase.co';
-const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqbW1mcWp3eXFicWhjaGVob3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzIyMzksImV4cCI6MjA5MTE0ODIzOX0.uLNZR_CF9guwZiXjWmPtM7oEGeedGYgS2TIMpE1J02w';
-const vmSupabase=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-// ===== AUTH + CONFIG =====
-let clientConfig = null;
 
-(async function(){
-  // Helper: retry a Supabase call up to maxTries times
-  async function withRetry(fn, maxTries = 3, delayMs = 800) {
-    for (let i = 0; i < maxTries; i++) {
-      try { return await fn(); } catch(e) {
-        if (i < maxTries - 1) await new Promise(r => setTimeout(r, delayMs));
-        else throw e;
-      }
-    }
-  }
-
-  function showErrorScreen(msg, showRetry = true) {
-    document.getElementById('loadingScreen').innerHTML = `
-      <img src="/viewmark-logo.png" alt="ViewMark" style="height:48px;opacity:0.8;">
-      <p style="color:#ff8a8a;margin-top:16px;font-size:13px;">${msg}</p>
-      ${showRetry ? `
-      <button onclick="window.location.reload()" style="margin-top:16px;padding:9px 22px;background:#BC7350;color:#0A0A0A;border:none;border-radius:8px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.05em;">
-        Try Again
-      </button>` : ''}
-      <p style="margin-top:12px;font-size:11px;color:#A6A6A6;">
-        <span onclick="window.location.href='/login.html'" style="cursor:pointer;color:#BC7350;text-decoration:underline;">← Sign in again</span>
-      </p>`;
-  }
-
-  // ===== Token pass-through from trial.html signup =====
-  // trial.html redirects new users here with their session in the URL hash:
-  //   #access_token=xxx&refresh_token=yyy&type=signup
-  // Hash fragments stay client-side (never hit server logs), so it's safe
-  // to put tokens there. We hydrate the session so the user never has to
-  // log in manually after trial signup.
-  if (window.location.hash) {
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    const access_token = params.get('access_token');
-    const refresh_token = params.get('refresh_token');
-    if (access_token && refresh_token) {
-      try {
-        await vmSupabase.auth.setSession({ access_token, refresh_token });
-        // Strip tokens from URL bar so they don't sit in browser history
-        history.replaceState({}, '', window.location.pathname + window.location.search);
-      } catch (err) {
-        console.warn('Hash token hydration failed:', err);
-      }
-    }
-  }
-  // Check session — redirect silently if missing/expired
-  let session;
-  try {
-    const { data } = await vmSupabase.auth.getSession();
-    session = data.session;
-  } catch(e) {
-    // Network error getting session — retry once
-    await new Promise(r => setTimeout(r, 1000));
-    try {
-      const { data } = await vmSupabase.auth.getSession();
-      session = data.session;
-    } catch(e2) {
-      showErrorScreen('Could not connect. Please check your internet connection.');
-      return;
-    }
-  }
-  if (!session) { window.location.href = '/login.html'; return; }
-
-  try {
-    const userId = session.user.id;
-    // Retry config load up to 3 times — handles transient Supabase hiccups
-    const { data: configRow, error: configError } = await withRetry(() =>
-      vmSupabase.from('viewmark_configs').select('config').eq('user_id', userId).single()
-    );
-    if (configError || !configRow) {
-      const meta = session.user.user_metadata || {};
-      clientConfig = { companyName: meta.company || 'My Company', email: session.user.email,
-        contactUrl: '', brandColor: '#BC7350', logoBase64: '', plan: 'pro',
-        trialStart: session.user.created_at, active: true };
-    } else { clientConfig = configRow.config; }
-
-    const trialStart = new Date(clientConfig.trialStart || session.user.created_at);
-    const daysSinceStart = Math.floor((new Date() - trialStart) / (1000 * 60 * 60 * 24));
-    const trialDaysLeft = Math.max(0, 14 - daysSinceStart);
-    if (!clientConfig.paid && trialDaysLeft <= 0) {
-      document.getElementById('loadingScreen').innerHTML = `
-        <img src="/viewmark-logo.png" alt="ViewMark">
-        <p style="color:#ff8a8a;margin-top:16px;">Your free trial has ended.</p>
-        <p style="font-size:12px;color:#A6A6A6;margin-top:8px;">Contact <a href="mailto:randy@officemark.ca" style="color:#BC7350;">randy@officemark.ca</a> to continue.</p>`;
-      return;
-    }
-    applyBranding(clientConfig);
-    if (!clientConfig.paid && trialDaysLeft > 0) {
-      document.getElementById('trialBanner').style.display = 'flex';
-      document.getElementById('trialDaysText').textContent =
-        `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''}`;
-      document.querySelector('.main').style.height = `calc(100vh - 60px - 36px)`;
-    }
-    document.getElementById('loadingScreen').style.display = 'none';
-  } catch(err) {
-    console.error('Init error:', err);
-    // If it looks like an auth/token error, redirect to login silently
-    if (err.message && (err.message.includes('JWT') || err.message.includes('token') || err.message.includes('auth'))) {
-      window.location.href = '/login.html';
-      return;
-    }
-    showErrorScreen('Could not load your account. This is usually temporary.');
-  }
-})();
-
-// Brand colors that were defaults at some point in the app's history.
-// If a user's stored brandColor matches one of these, treat it as "not
-// truly customized" so the CSS default (the current default) wins.
-// Otherwise existing users would be permanently stuck on the old default
-// after a brand refresh. Add new defaults to this list whenever the
-// CSS --brand value changes.
-const OLD_BRAND_DEFAULTS = ['#c8a96e', '#E85D2F', '#BC7350'];
-
-function applyBranding(config) {
-  if (config.brandColor && !OLD_BRAND_DEFAULTS.includes(config.brandColor)) {
-    document.documentElement.style.setProperty('--brand',  config.brandColor);
-    document.documentElement.style.setProperty('--brand2', config.brandColor);
-  }
-  const logoWrap = document.getElementById('clientLogoWrap');
-  if (config.logoBase64 && config.logoBase64.length > 100) {
-    logoWrap.innerHTML = `<img src="${config.logoBase64}" alt="${config.companyName || 'Logo'}" style="height:38px;width:auto;max-width:180px;object-fit:contain;">`;
-  } else {
-    logoWrap.innerHTML = `<div class="client-logo-text">${config.companyName || 'ViewMark'}</div>`;
-  }
-  const quoteBtn = document.getElementById('quoteBtn');
-  if (quoteBtn) quoteBtn.href = config.contactUrl || ('mailto:' + (config.email || ''));
-}
-
-async function signOut(){await vmSupabase.auth.signOut();window.location.href='/login.html';}
+<script>
+// ===== EMBED INIT — no auth, no branding persistence =====
+document.getElementById('clientLogoWrap').innerHTML = '';
+document.getElementById('loadingScreen').style.display = 'none';
 
 function newSession() {
   if (overlayItems.length > 0 || wallImg) {
     if (!confirm('Start a new session? Your current work will be cleared.')) return;
   }
-  // Reset all state
   wallImg = null; canvasW = 0; canvasH = 0;
   overlayItems = []; selectedItem = null; itemCounter = 0;
   pxPerInch = null; scaleMode = null; scalePoints = [];
@@ -977,7 +730,6 @@ function newSession() {
   zoom = 1.0; panX = 0; panY = 0;
   savedMeasurements = [];
   snapEnabled = false;
-  // Reset UI
   [wallCvs, refCvs, ptpCvs].forEach(c => { c.style.display='none'; c.getContext('2d').clearRect(0,0,c.width,c.height); });
   overlayEl.style.display = 'none';
   overlayEl.innerHTML = '';
@@ -1010,30 +762,27 @@ let pxPerInch = null;
 let scaleMode = null, scalePoints = [];
 let ptpActive = false, ptpPoints = [], ptpDots = [];
 let zoom = 1.0;
-let panX = 0, panY = 0; // pan offset in canvas-area pixels
+let panX = 0, panY = 0;
 const ZOOM_MIN = 0.2, ZOOM_MAX = 5.0;
 let isPanning = false, panStartX = 0, panStartY = 0, panStartOffX = 0, panStartOffY = 0;
 let zoomAreaMode = false, zoomAreaDrag = false, zoomAreaStart = null;
 let boxMeasureMode = false, boxMeasureDrag = false, boxMeasureStart = null, boxUnit = 'in';
 let snapEnabled = false;
-const SNAP_SIZE = 20; // pixels in canvas space
+const SNAP_SIZE = 20;
 
-// Canvas elements
 const wallCvs = document.getElementById('wallCanvas');
 const wallCtx = wallCvs.getContext('2d');
 const refCvs  = document.getElementById('refCanvas');
 const refCtx  = refCvs.getContext('2d');
-const ptpCvs  = document.getElementById('ptpCanvas');   // isolated — only p-t-p draws here
+const ptpCvs  = document.getElementById('ptpCanvas');
 const ptpCtx  = ptpCvs.getContext('2d');
 const overlayEl  = document.getElementById('overlayContainer');
 const canvasArea = document.getElementById('canvasArea');
 const zoomBox    = document.getElementById('zoomSelectBox');
 
-// ===== MODAL =====
 function showModal()  { document.getElementById('howToModal').classList.add('visible'); }
 function closeModal() { document.getElementById('howToModal').classList.remove('visible'); }
 
-// ===== WALL UPLOAD =====
 const uploadZone = document.getElementById('uploadZone');
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
@@ -1051,7 +800,6 @@ function loadWall(file) {
     img.onload = () => {
       wallImg = img; zoom = 1.0; panX = 0; panY = 0;
       resizeCanvases(); drawWall();
-      // Clear all drawing canvases on new photo
       refCtx.clearRect(0, 0, wallCvs.width, wallCvs.height);
       ptpCtx.clearRect(0, 0, wallCvs.width, wallCvs.height);
       clearScaleDots(); clearPtp();
@@ -1093,7 +841,6 @@ function drawWall() {
   if (wallImg) wallCtx.drawImage(wallImg, 0, 0, canvasW, canvasH);
 }
 
-// ===== ZOOM =====
 function applyZoom() {
   [wallCvs, refCvs, ptpCvs, overlayEl].forEach(el => {
     el.style.transformOrigin = 'top left';
@@ -1101,7 +848,6 @@ function applyZoom() {
   });
   document.getElementById('zoomLabel').textContent = Math.round(zoom * 100) + '%';
   repositionDots();
-  // Show grab cursor hint when zoomed in and not in another mode
   if (!scaleMode && !ptpActive && !zoomAreaMode && !boxMeasureMode && !isPanning) {
     canvasArea.style.cursor = zoom > 1.0 ? 'grab' : '';
   }
@@ -1119,7 +865,6 @@ canvasArea.addEventListener('wheel', e => {
   adjustZoom(e.deltaY < 0 ? 0.1 : -0.1);
 }, { passive: false });
 
-// Zoom-to-area
 function toggleZoomArea() {
   zoomAreaMode = !zoomAreaMode;
   document.getElementById('zoomAreaBtn').classList.toggle('active', zoomAreaMode);
@@ -1158,13 +903,10 @@ canvasArea.addEventListener('mouseup', e => {
   if (selW > 20 && selH > 20) {
     const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN,
       +(Math.min(canvasArea.clientWidth / selW, canvasArea.clientHeight / selH)).toFixed(2)));
-    // Pan so the selected box top-left maps to canvas origin, then center it
     const canvasOffL = parseFloat(wallCvs.style.left) || 0;
     const canvasOffT = parseFloat(wallCvs.style.top)  || 0;
-    // selX/selY are in canvasArea coords; convert to canvas-image coords
     const imgX = (selX - canvasOffL) / zoom - panX / zoom;
     const imgY = (selY - canvasOffT) / zoom - panY / zoom;
-    // After zoom, we want imgX*newZoom to appear at center of viewport
     panX = canvasArea.clientWidth  / 2 - (imgX + selW / zoom / 2) * newZoom - canvasOffL;
     panY = canvasArea.clientHeight / 2 - (imgY + selH / zoom / 2) * newZoom - canvasOffT;
     zoom = newZoom;
@@ -1175,7 +917,6 @@ canvasArea.addEventListener('mouseup', e => {
   canvasArea.style.cursor = '';
 });
 
-// ===== SCALE CALIBRATION =====
 let scaleMethod = 'manual';
 
 function switchMethod(m, btn) {
@@ -1188,12 +929,6 @@ function switchMethod(m, btn) {
   cancelScale();
 }
 
-// ===== VERIFY SCALE =====
-// After scale is set via one of the other methods, the user clicks two
-// points on something else they know the size of. We measure that
-// distance with the existing pxPerInch and compare to what they expected,
-// reporting tolerance. We never change pxPerInch here — this is a
-// confidence check, not a re-calibration.
 let verifyPoints = [];
 
 function startVerifyClick() {
@@ -1311,8 +1046,6 @@ function showScaleBadge(txt) {
   updateScaleWarning();
 }
 
-// Show or hide the "set your scale first" banner based on current state.
-// Visible when a wall photo is loaded but pxPerInch hasn't been computed yet.
 function updateScaleWarning() {
   const w = document.getElementById('scaleWarning');
   if (!w) return;
@@ -1326,11 +1059,9 @@ function updateRefStatusText() {
   }
 }
 
-// ===== UNIFIED CANVAS CLICK ROUTER =====
 canvasArea.addEventListener('click', e => {
   if (zoomAreaMode) return;
   const rect = wallCvs.getBoundingClientRect();
-  // rect already reflects the current transform, so these coords are correct in canvas space
   const x = (e.clientX - rect.left) / zoom;
   const y = (e.clientY - rect.top)  / zoom;
 
@@ -1376,7 +1107,6 @@ canvasArea.addEventListener('click', e => {
   }
 });
 
-// ===== POINT-TO-POINT MEASURE (isolated ptpCanvas) =====
 function startPtp() {
   if (!wallImg)   { showToast('Upload a wall photo first.'); return; }
   if (!pxPerInch) { showToast('Set your scale first.'); return; }
@@ -1399,7 +1129,6 @@ function handlePtpClick(x, y) {
     const dist = ptDist(ptpPoints[0], ptpPoints[1]);
     const inches = dist / pxPerInch;
 
-    // Draw ONLY on ptpCanvas — never touches refCanvas
     ptpCtx.clearRect(0, 0, canvasW, canvasH);
     ptpCtx.beginPath();
     ptpCtx.moveTo(ptpPoints[0].x, ptpPoints[0].y);
@@ -1409,7 +1138,6 @@ function handlePtpClick(x, y) {
     ptpCtx.setLineDash([5, 3]);
     ptpCtx.stroke();
     ptpCtx.setLineDash([]);
-    // Tick marks
     [ptpPoints[0], ptpPoints[1]].forEach(p => {
       const ang = Math.atan2(ptpPoints[1].y - ptpPoints[0].y, ptpPoints[1].x - ptpPoints[0].x) + Math.PI / 2;
       ptpCtx.beginPath();
@@ -1426,7 +1154,6 @@ function handlePtpClick(x, y) {
     document.getElementById('ptpStatus').textContent = 'Measurement complete. Click anywhere to measure again.';
     document.getElementById('ptpResult').textContent = label;
     document.getElementById('clearPtpBtn').style.display = 'flex';
-    // Allow clicking canvas to immediately start another measurement
     canvasArea.addEventListener('click', function ptpRestart(e) {
       if (e.target.closest('.overlay-item') || e.target.closest('button')) return;
       canvasArea.removeEventListener('click', ptpRestart);
@@ -1439,14 +1166,13 @@ function handlePtpClick(x, y) {
 function clearPtp() {
   ptpActive = false; ptpPoints = [];
   canvasArea.classList.remove('measuring');
-  ptpCtx.clearRect(0, 0, canvasW, canvasH);  // clears ONLY ptpCanvas
+  ptpCtx.clearRect(0, 0, canvasW, canvasH);
   ptpDots.forEach(d => d.remove()); ptpDots = [];
   document.getElementById('ptpStatus').textContent  = 'Set scale first, then click Measure Distance.';
   document.getElementById('ptpResult').textContent  = '';
   document.getElementById('clearPtpBtn').style.display = 'none';
 }
 
-// ===== DRAWING HELPERS =====
 function drawLine(ctx2d, p1, p2, color) {
   ctx2d.clearRect(0, 0, canvasW, canvasH);
   ctx2d.beginPath(); ctx2d.moveTo(p1.x, p1.y); ctx2d.lineTo(p2.x, p2.y);
@@ -1479,7 +1205,6 @@ function repositionDots() {
 
 function ptDist(a, b) { return Math.sqrt((b.x-a.x)**2 + (b.y-a.y)**2); }
 
-// ===== LOGO UPLOAD =====
 document.getElementById('logoInput').addEventListener('change', e => {
   if (!wallImg) { showToast('Upload a wall photo first.'); return; }
   if (!pxPerInch) { showToast('Set your scale first — Step ② above.'); e.target.value=''; return; }
@@ -1504,7 +1229,6 @@ function addImageOverlay(img, label) {
   showToast('Logo added! Drag to position, resize from the gold corner.');
 }
 
-// ===== TEXT =====
 function toggleTextPanel() {
   if (!wallImg) { showToast('Upload a wall photo first.'); return; }
   if (!pxPerInch) { showToast('Set your scale first — Step ② above.'); return; }
@@ -1519,7 +1243,6 @@ function addTextOverlay() {
   const color = document.getElementById('textColor').value;
   const id = ++itemCounter;
   const fontSize = Math.round(canvasH * 0.08);
-  // Measure actual text width so bounding box fits the text tightly
   const measCtx = document.createElement('canvas').getContext('2d');
   measCtx.font = `${fontSize}px ${font}`;
   const textW = Math.ceil(measCtx.measureText(text).width) + 8;
@@ -1533,7 +1256,6 @@ function addTextOverlay() {
   showToast('Text added! Drag to position, resize from the gold corner.');
 }
 
-// ===== RENDER OVERLAY =====
 function renderItem(item) {
   const prev = document.getElementById('oi-' + item.id); if (prev) prev.remove();
   const el = document.createElement('div');
@@ -1592,14 +1314,11 @@ function makeDraggable(el, item, resH) {
       const constrain = e.shiftKey || e.ctrlKey;
       if (item.type==='logo') {
         if (constrain) {
-          // Proportional
           item.w=Math.max(30,sw+dx); item.h=item.w*(item.origH/item.origW);
         } else {
-          // Free resize
           item.w=Math.max(30,sw+dx); item.h=Math.max(10,sh+dy);
         }
       } else {
-        // Text: free resize by default
         item.w=Math.max(50,sw+dx); item.h=Math.max(16,sh+dy);
         item.fontSize=Math.round(item.h*0.7);
         if(item._canvas) drawTextCanvas(item._canvas,item);
@@ -1629,7 +1348,6 @@ function selectItem(id) {
   const el = document.getElementById('oi-'+id); if (el) el.classList.add('selected');
   const row = document.getElementById('ir-'+id); if (row) row.classList.add('active');
 
-  // Show edit panel if text item selected
   const item = overlayItems.find(i => i.id === id);
   const editPanel = document.getElementById('editTextPanel');
   if (item && item.type === 'text') {
@@ -1691,7 +1409,6 @@ function updateItemsList() {
   });
 }
 
-// ===== BOX MEASURE =====
 let savedMeasurements = [];
 
 function setBoxUnit(u) {
@@ -1712,7 +1429,6 @@ function startBoxMeasure() {
   document.getElementById('clearBoxBtn').style.display = 'none';
   document.getElementById('boxSaveRow').style.display = 'none';
   document.getElementById('boxSelectRect').style.display = 'none';
-  // Freeze all overlay items so they don't intercept the drag
   document.querySelectorAll('.overlay-item').forEach(el => {
     el.classList.remove('selected');
     el.style.pointerEvents = 'none';
@@ -1790,7 +1506,6 @@ function renderSavedMeasurements() {
   });
 }
 
-// Box measure mouse handlers
 canvasArea.addEventListener('mousedown', e => {
   if (!boxMeasureMode || !wallImg || zoomAreaMode) return;
   boxMeasureDrag = true;
@@ -1826,7 +1541,6 @@ canvasArea.addEventListener('mouseup', e => {
     document.getElementById('clearBoxBtn').style.display = 'flex';
     document.getElementById('boxSaveRow').style.display = 'flex';
     document.getElementById('boxMeasureBtn').classList.remove('primary');
-    // Allow clicking canvas to immediately start another box measurement
     canvasArea.addEventListener('mousedown', function boxRestart(e) {
       if (e.target.closest('.overlay-item') || e.target.closest('button') ||
           e.target.closest('#savedMeasurementsList') || zoomAreaMode) return;
@@ -1839,7 +1553,6 @@ canvasArea.addEventListener('mouseup', e => {
   }
 });
 
-// ===== PRODUCT =====
 const PRODUCT_NOTES = {
   letters: 'Raised 3D letters and logos — aluminum, acrylic, or foam. Fabricated to exact dimensions. Pricing depends on material and letter count.',
   vinyl:   'Precision-cut vinyl applied directly to the wall surface. Available in hundreds of colours. Any custom size.',
@@ -1860,7 +1573,6 @@ function selectProduct(btn) {
   updateSizeResult();
 }
 
-// ===== SIZE RESULT =====
 function updateSizeResult() {
   const result = document.getElementById('sizeResult');
   const hint   = document.getElementById('sizeHint');
@@ -1893,7 +1605,6 @@ function updateSizeResult() {
   updateOrderBtn();
 }
 
-// ===== PILLS =====
 function updatePills(step) {
   for (let i=1;i<=4;i++) {
     const p = document.getElementById('pill'+i);
@@ -1903,19 +1614,14 @@ function updatePills(step) {
   }
 }
 
-// ===== ORDER =====
-function updateOrderBtn() {
-  // Quote button is always visible; no separate disabled state needed
-}
+function updateOrderBtn() {}
 
-// ===== TOAST =====
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3200);
 }
 
-// Deselect on background click
 canvasArea.addEventListener('mousedown', e => {
   if (!scaleMode && !ptpActive && !zoomAreaMode && !boxMeasureMode &&
       (e.target===wallCvs||e.target===canvasArea||e.target===overlayEl||e.target===refCvs||e.target===ptpCvs)) {
@@ -1923,7 +1629,6 @@ canvasArea.addEventListener('mousedown', e => {
     document.querySelectorAll('.item-row').forEach(r=>r.classList.remove('active'));
     selectedItem=null;
     document.getElementById('editTextPanel').style.display = 'none';
-    // Start pan if zoomed in
     if (zoom > 1.0 && wallImg) {
       isPanning = true;
       panStartX = e.clientX; panStartY = e.clientY;
@@ -1948,7 +1653,6 @@ document.addEventListener('mouseup', e => {
   }
 });
 
-// ===== RESIZE =====
 window.addEventListener('resize', () => {
   if (!wallImg) return;
   resizeCanvases(); drawWall();
@@ -1958,7 +1662,6 @@ window.addEventListener('resize', () => {
   });
 });
 
-// ===== SNAP TO GRID =====
 function toggleSnap() {
   snapEnabled = !snapEnabled;
   const btn = document.getElementById('snapBtn');
@@ -1977,39 +1680,32 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ===== PDF EXPORT =====
 function exportPDF() {
   if (!wallImg) { showToast('Upload a wall photo first.'); return; }
   if (!pxPerInch) { showToast('Set your scale first before exporting — Step ② above.'); return; }
   showToast('Generating PDF…');
-  // Composite everything onto one canvas
   const W = canvasW, H = canvasH;
   const out = document.createElement('canvas');
-  // Add space below for measurements summary
   const hasMeasurements = savedMeasurements.length > 0;
   const summaryH = hasMeasurements ? Math.min(savedMeasurements.length * 32 + 80, 300) : 0;
-  const pdfH = H + summaryH + 120; // extra for header + footer
+  const pdfH = H + summaryH + 120;
   out.width = W; out.height = pdfH;
   const ctx = out.getContext('2d');
 
-  // Background
   ctx.fillStyle = '#0A0A0A';
   ctx.fillRect(0, 0, W, pdfH);
 
-  // Header bar
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, W, 44);
   ctx.fillStyle = '#E85D2F';
   ctx.font = 'bold 22px sans-serif';
-  ctx.fillText('ViewMark — Wall Visualizer', 16, 29);
+  ctx.fillText('Visualizer', 16, 29);
   ctx.fillStyle = '#A6A6A6';
   ctx.font = '11px sans-serif';
   ctx.fillText(new Date().toLocaleDateString('en-CA', { year:'numeric', month:'long', day:'numeric' }), W - 150, 29);
 
-  // Wall image
   ctx.drawImage(wallCvs, 0, 44, W, H);
 
-  // Overlay items
   overlayItems.forEach(item => {
     if (item.type === 'logo' && item.img) {
       ctx.drawImage(item.img, item.x, 44 + item.y, item.w, item.h);
@@ -2018,7 +1714,6 @@ function exportPDF() {
     }
   });
 
-  // Scale badge line
   const scaleY = 44 + H + 14;
   if (pxPerInch) {
     ctx.fillStyle = 'rgba(168,207,69,0.15)';
@@ -2030,7 +1725,6 @@ function exportPDF() {
     ctx.fillText(`Scale: 1" = ${pxPerInch.toFixed(1)}px`, 20, scaleY + 4);
   }
 
-  // Overlay item sizes
   let sizeY = scaleY + 34;
   if (overlayItems.length && pxPerInch) {
     ctx.fillStyle = '#BC7350';
@@ -2050,7 +1744,6 @@ function exportPDF() {
     });
   }
 
-  // Saved measurements
   if (hasMeasurements) {
     sizeY += 8;
     ctx.fillStyle = '#BC7350';
@@ -2068,16 +1761,14 @@ function exportPDF() {
     });
   }
 
-  // Disclaimer footer
   ctx.fillStyle = 'rgba(166,166,166,0.7)';
   ctx.font = '9px sans-serif';
   ctx.fillText('Measurements are estimations only. Always verify with physical measurements before production.', 12, pdfH - 10);
 
-  // Export as PDF via print (creates a printable image page)
   const img = out.toDataURL('image/png');
   const win = window.open('', '_blank');
   if (!win) { showToast('Allow popups to export PDF'); return; }
-  win.document.write(`<!DOCTYPE html><html><head><title>ViewMark Export</title>
+  win.document.write(`<!DOCTYPE html><html><head><title>Visualizer Export</title>
     <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#0A0A0A;}
     img{width:100%;height:auto;display:block;}
     @media print{body{margin:0;}img{max-width:100%;page-break-inside:avoid;}}
@@ -2089,7 +1780,6 @@ function exportPDF() {
   showToast('PDF ready — use your browser print dialog to save.');
 }
 
-// ===== SAVE / LOAD SESSION =====
 function saveSession() {
   if (!wallImg) { showToast('Nothing to save yet — upload a wall photo first.'); return; }
   const wallDataUrl = wallCvs.toDataURL('image/jpeg', 0.85);
@@ -2115,7 +1805,7 @@ function saveSession() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `viewmark-session-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `visualizer-session-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('Session saved!');
@@ -2129,7 +1819,6 @@ function loadSession(event) {
       const session = JSON.parse(e.target.result);
       if (!session.wallDataUrl) throw new Error('Invalid session file');
 
-      // Load wall image
       const img = new Image();
       img.onload = () => {
         wallImg = img; zoom = 1.0; panX = 0; panY = 0;
@@ -2139,7 +1828,6 @@ function loadSession(event) {
         document.getElementById('canvasHint').style.display = 'none';
         document.getElementById('zoomControls').style.display = 'flex';
 
-        // Restore state
         pxPerInch = session.pxPerInch || null;
         selectedProduct = session.selectedProduct || 'letters';
         savedMeasurements = session.savedMeasurements || [];
@@ -2149,10 +1837,8 @@ function loadSession(event) {
 
         if (pxPerInch) showScaleBadge(`1" = ${pxPerInch.toFixed(1)}px  (restored)`);
 
-        // Restore snap
         if (session.snapEnabled && !snapEnabled) toggleSnap();
 
-        // Restore overlay items
         const itemsToLoad = session.overlayItems || [];
         let loaded = 0;
         if (!itemsToLoad.length) { finishLoad(); return; }
@@ -2196,75 +1882,6 @@ function loadSession(event) {
   reader.readAsText(file);
   event.target.value = '';
 }
-
-// ===== SETTINGS MODAL =====
-function showSettings() {
-  if (clientConfig) {
-    document.getElementById('settingsCompany').value = clientConfig.companyName || '';
-    document.getElementById('settingsContactUrl').value = clientConfig.contactUrl || '';
-    const color = clientConfig.brandColor || '#BC7350';
-    document.getElementById('settingsBrandColor').value = color;
-    document.getElementById('settingsColorHex').textContent = color;
-    if (clientConfig.logoBase64 && clientConfig.logoBase64.length > 100) {
-      document.getElementById('settingsLogoPreview').src = clientConfig.logoBase64;
-      document.getElementById('settingsLogoPreview').style.display = 'block';
-      document.getElementById('settingsLogoPrompt').style.display = 'none';
-    }
-  }
-  document.getElementById('settingsOverlay').classList.add('visible');
-}
-
-function closeSettings() {
-  document.getElementById('settingsOverlay').classList.remove('visible');
-}
-
-document.getElementById('settingsBrandColor').addEventListener('input', function() {
-  document.getElementById('settingsColorHex').textContent = this.value;
-});
-
-document.getElementById('settingsLogoFile').addEventListener('change', function() {
-  const file = this.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('settingsLogoPreview').src = ev.target.result;
-    document.getElementById('settingsLogoPreview').style.display = 'block';
-    document.getElementById('settingsLogoPrompt').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-});
-
-async function saveSettings() {
-  const companyName = document.getElementById('settingsCompany').value.trim();
-  const contactUrl  = document.getElementById('settingsContactUrl').value.trim();
-  const brandColor  = document.getElementById('settingsBrandColor').value;
-  let logoBase64 = clientConfig?.logoBase64 || '';
-
-  const newLogoFile = document.getElementById('settingsLogoFile').files[0];
-  if (newLogoFile) {
-    logoBase64 = await new Promise(res => {
-      const r = new FileReader();
-      r.onload = ev => res(ev.target.result);
-      r.readAsDataURL(newLogoFile);
-    });
-  }
-
-  const updatedConfig = { ...clientConfig, companyName, contactUrl, brandColor, logoBase64 };
-
-  try {
-    const{data:{session}}=await vmSupabase.auth.getSession();
-    if(!session)throw new Error('Not authenticated');
-    const{error}=await vmSupabase.from('viewmark_configs').upsert({user_id:session.user.id,config:updatedConfig},{onConflict:'user_id'});
-    if(error)throw error;
-    clientConfig=updatedConfig;
-    applyBranding(clientConfig);
-    closeSettings();
-    showToast('Branding updated!');
-  } catch(err) {
-    console.error(err);
-    showToast('Could not save — check your connection.');
-  }
-}
-
 </script>
 </body>
 </html>
