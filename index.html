@@ -20,7 +20,7 @@
   --muted: rgba(255, 255, 255, 0.65);
   --green: #A8CF45;
   --danger: #e05555;
-  --measure: #ff9f43;
+  --measure: #5B8AC4;
   --radius: 10px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -179,8 +179,8 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .ref-dot.orange { background: var(--measure); }
 
 #zoomSelectBox {
-  position: absolute; border: 2px dashed rgba(255,159,67,0.8);
-  background: rgba(255,159,67,0.08); pointer-events: none; display: none; z-index: 60;
+  position: absolute; border: 2px dashed rgba(91,138,196,0.8);
+  background: rgba(91,138,196,0.08); pointer-events: none; display: none; z-index: 60;
 }
 
 .zoom-controls {
@@ -195,7 +195,7 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
   transition: all 0.2s; backdrop-filter: blur(4px);
 }
 .zoom-btn:hover  { background: rgba(188,115,80,0.15); border-color: var(--brand); }
-.zoom-btn.active { background: rgba(255,159,67,0.2); border-color: var(--measure); color: var(--measure); }
+.zoom-btn.active { background: rgba(91,138,196,0.2); border-color: var(--measure); color: var(--measure); }
 .zoom-label {
   background: rgba(10,10,10,0.85); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 6px; color: var(--muted); font-size: 10px; text-align: center; padding: 4px;
@@ -243,7 +243,7 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 .ref-size-row input { flex:1; }
 .ref-size-row span { font-size:11px; color:var(--muted); white-space:nowrap; }
 
-.ptp-box { background:rgba(255,159,67,0.06); border:1px solid rgba(255,159,67,0.22); border-radius:8px; padding:12px; }
+.ptp-box { background:rgba(91,138,196,0.06); border:1px solid rgba(91,138,196,0.22); border-radius:8px; padding:12px; }
 .ptp-box p { font-size:11px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
 .ptp-status { font-size:11px; color:var(--measure); margin-top:8px; min-height:16px; }
 .ptp-result { font-family:'Manrope',sans-serif; font-weight:800; font-size:24px; color:var(--measure); letter-spacing:1.5px; margin-top:5px; min-height:28px; }
@@ -256,7 +256,7 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
 }
 .action-btn:hover   { border-color:var(--green); background:rgba(168,207,69,0.08); color:var(--green); }
 .action-btn.primary { background:rgba(168,207,69,0.12); border-color:rgba(168,207,69,0.3); color:var(--green); }
-.action-btn.ptp-primary { background:rgba(255,159,67,0.12); border-color:rgba(255,159,67,0.3); color:var(--measure); }
+.action-btn.ptp-primary { background:rgba(91,138,196,0.12); border-color:rgba(91,138,196,0.3); color:var(--measure); }
 .action-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
 .add-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
@@ -494,7 +494,7 @@ body { font-family: 'Manrope', sans-serif; background: var(--navy); color: var(-
         </div>
       </div>
       <div class="method-panel" id="methodVerify">
-        <div class="ref-method-box" style="border-color:rgba(255,159,67,0.3);background:rgba(255,159,67,0.05);">
+        <div class="ref-method-box" style="border-color:rgba(91,138,196,0.3);background:rgba(91,138,196,0.05);">
           <p style="color:var(--muted);">Already set your scale? Double-check it. Click two points on something you know the size of — a door, a ceiling tile, a parking space — and we'll tell you how close the scale is.</p>
           <button class="action-btn ptp-primary" onclick="startVerifyClick()">Click Two Points to Check</button>
           <div class="ref-status" id="verifyStatus" style="color:var(--measure);">Set scale first, then click here.</div>
@@ -1155,7 +1155,7 @@ canvasArea.addEventListener('click', e => {
     if (verifyPoints.length === 1) {
       document.getElementById('verifyStatus').textContent = 'Now click point 2.';
     } else if (verifyPoints.length === 2) {
-      drawLine(refCtx, verifyPoints[0], verifyPoints[1], 'rgba(255,159,67,0.9)');
+      drawLine(refCtx, verifyPoints[0], verifyPoints[1], 'rgba(91,138,196,0.9)');
       const dist = ptDist(verifyPoints[0], verifyPoints[1]);
       document.getElementById('verifyStatus').textContent =
         `${dist.toFixed(0)}px measured. Enter what you expect this to measure below.`;
@@ -1191,7 +1191,7 @@ function handlePtpClick(x, y) {
     ptpCtx.beginPath();
     ptpCtx.moveTo(ptpPoints[0].x, ptpPoints[0].y);
     ptpCtx.lineTo(ptpPoints[1].x, ptpPoints[1].y);
-    ptpCtx.strokeStyle = 'rgba(255,159,67,0.85)';
+    ptpCtx.strokeStyle = 'rgba(91,138,196,0.85)';
     ptpCtx.lineWidth = 2;
     ptpCtx.setLineDash([5, 3]);
     ptpCtx.stroke();
@@ -1201,7 +1201,7 @@ function handlePtpClick(x, y) {
       ptpCtx.beginPath();
       ptpCtx.moveTo(p.x + Math.cos(ang) * 7, p.y + Math.sin(ang) * 7);
       ptpCtx.lineTo(p.x - Math.cos(ang) * 7, p.y - Math.sin(ang) * 7);
-      ptpCtx.strokeStyle = 'rgba(255,159,67,0.85)';
+      ptpCtx.strokeStyle = 'rgba(91,138,196,0.85)';
       ptpCtx.lineWidth = 2; ptpCtx.setLineDash([]);
       ptpCtx.stroke();
     });
